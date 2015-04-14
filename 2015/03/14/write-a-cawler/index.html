@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>写一个简单的爬虫 | yu’s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="一个爬虫的基本功能包括        
+
+获取网页   
+分析内容   
+处理结果   
+
+以 python 为例，写一个下载图片的爬虫。   
+下载网页第一步获取网页内容，需要像目标服务器发送 HTTP GET 请求。有部分站点会屏蔽来自非 Web 浏览器的访问，因此构造 HTTP 请求时尽量接近于真实的浏览器请求，以减少被禁止的可能性。通过浏览器的网络工具可以看到一个完整的 HTTP 请求报文">
+<meta property="og:type" content="article">
+<meta property="og:title" content="写一个简单的爬虫">
+<meta property="og:url" content="http://evthoriz.github.io/2015/03/14/write-a-cawler/index.html">
+<meta property="og:site_name" content="yu’s blog">
+<meta property="og:description" content="一个爬虫的基本功能包括        
+
+获取网页   
+分析内容   
+处理结果   
+
+以 python 为例，写一个下载图片的爬虫。   
+下载网页第一步获取网页内容，需要像目标服务器发送 HTTP GET 请求。有部分站点会屏蔽来自非 Web 浏览器的访问，因此构造 HTTP 请求时尽量接近于真实的浏览器请求，以减少被禁止的可能性。通过浏览器的网络工具可以看到一个完整的 HTTP 请求报文">
+<meta property="og:image" content="\img\jandan_request.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="写一个简单的爬虫">
+<meta name="twitter:description" content="一个爬虫的基本功能包括        
+
+获取网页   
+分析内容   
+处理结果   
+
+以 python 为例，写一个下载图片的爬虫。   
+下载网页第一步获取网页内容，需要像目标服务器发送 HTTP GET 请求。有部分站点会屏蔽来自非 Web 浏览器的访问，因此构造 HTTP 请求时尽量接近于真实的浏览器请求，以减少被禁止的可能性。通过浏览器的网络工具可以看到一个完整的 HTTP 请求报文">
+  
+    <link rel="alternative" href="/atom.xml" title="yu’s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+  <script src="http://libs.baidu.com/jquery/1.9.0/jquery.js"></script>
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+	<header id="header" class="inner">
+		<a href="/" class="profilepic">
+			<img src="https://avatars0.githubusercontent.com/u/2124676?v=3&amp;amp;s=460">
+		</a>
+
+		<hgroup>
+		  <h1 class="header-author"><a href="/">evtHoriz</a></h1>
+		</hgroup>
+
+		
+		<p class="header-subtitle">脑洞大开</p>
+		
+
+		
+			<div class="switch-btn">
+				<div class="icon">
+					<div class="icon-ctn">
+						<div class="icon-wrap icon-house" data-idx="0">
+							<div class="birdhouse"></div>
+							<div class="birdhouse_holes"></div>
+						</div>
+						<div class="icon-wrap icon-ribbon hide" data-idx="1">
+							<div class="ribbon"></div>
+						</div>
+						
+						
+						<div class="icon-wrap icon-me hide" data-idx="3">
+							<div class="user"></div>
+							<div class="shoulder"></div>
+						</div>
+						
+					</div>
+					
+				</div>
+				<div class="tips-box hide">
+					<div class="tips-arrow"></div>
+					<ul class="tips-inner">
+						<li>菜单</li>
+						<li>标签</li>
+						
+						
+						<li>关于我</li>
+						
+					</ul>
+				</div>
+			</div>
+		
+
+		<div class="switch-area">
+			<div class="switch-wrap">
+				<section class="switch-part switch-part1">
+					<nav class="header-menu">
+						<ul>
+						
+							<li><a href="/">主页</a></li>
+				        
+							<li><a href="/archives">所有文章</a></li>
+				        
+						</ul>
+					</nav>
+					<nav class="header-nav">
+						<div class="social">
+							
+								<a class="github" target="_blank" href="https://github.com/evthoriz/" title="github">github</a>
+					        
+								<a class="rss" target="_blank" href="/atom.xml" title="rss">rss</a>
+					        
+								<a class="zhihu" target="_blank" href="/#" title="zhihu">zhihu</a>
+					        
+								<a class="mail" target="_blank" href="/“yukaiyuan.2012@gmail.com”" title="mail">mail</a>
+					        
+						</div>
+					</nav>
+				</section>
+				
+				
+				<section class="switch-part switch-part2">
+					<div class="widget tagcloud" id="js-tagcloud">
+						<a href="/tags/python/" style="font-size: NaNpx;">python</a><a href="/tags/分布式/" style="font-size: NaNpx;">分布式</a><a href="/tags/爬虫/" style="font-size: NaNpx;">爬虫</a><a href="/tags/算法/" style="font-size: NaNpx;">算法</a>
+					</div>
+				</section>
+				
+				
+				
+
+				
+				
+				<section class="switch-part switch-part3">
+				
+					<div id="js-aboutme">感受真理，感受爱</div>
+				</section>
+				
+			</div>
+		</div>
+	</header>				
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+  	<div class="overlay">
+  		<div class="slider-trigger"></div>
+  		<h1 class="header-author js-mobile-header hide">evtHoriz</h1>
+  	</div>
+	<div class="intrude-less">
+		<header id="header" class="inner">
+			<div class="profilepic">
+				<img src="https://avatars0.githubusercontent.com/u/2124676?v=3&amp;amp;s=460">
+				<hgroup>
+				  <h1 class="header-author">evtHoriz</h1>
+				</hgroup>
+			</div>
+			
+			<p class="header-subtitle">脑洞大开</p>
+			
+			<nav class="header-menu">
+				<ul>
+				
+					<li><a href="/">主页</a></li>
+		        
+					<li><a href="/archives">所有文章</a></li>
+		        
+		        <div class="clearfix"></div>
+				</ul>
+			</nav>
+			<nav class="header-nav">
+				<div class="social">
+					
+						<a class="github" target="_blank" href="https://github.com/evthoriz/" title="github">github</a>
+			        
+						<a class="rss" target="_blank" href="/atom.xml" title="rss">rss</a>
+			        
+						<a class="zhihu" target="_blank" href="/#" title="zhihu">zhihu</a>
+			        
+						<a class="mail" target="_blank" href="/“yukaiyuan.2012@gmail.com”" title="mail">mail</a>
+			        
+				</div>
+			</nav>
+		</header>				
+	</div>
+</nav>
+      <div class="body-wrap"><article id="post-write-a-cawler" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2015/03/14/write-a-cawler/" class="article-date">
+  	<time datetime="2015-03-13T16:00:00.000Z" itemprop="datePublished">2015-03-14</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      写一个简单的爬虫
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/python/">python</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/爬虫/">爬虫</a></li></ul>
+	</div>
+
+        
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>一个爬虫的基本功能包括        </p>
+<ul>
+<li>获取网页   </li>
+<li>分析内容   </li>
+<li>处理结果   </li>
+</ul>
+<p>以 python 为例，写一个下载图片的爬虫。   </p>
+<h2 id="下载网页">下载网页</h2><p>第一步获取网页内容，需要像目标服务器发送 HTTP GET 请求。有部分站点会屏蔽来自非 Web 浏览器的访问，因此构造 HTTP 请求时尽量接近于真实的浏览器请求，以减少被禁止的可能性。<br>通过浏览器的网络工具可以看到一个完整的 HTTP 请求报文，<br><img src="\img\jandan_request.png" alt="request"><br><a id="more"></a></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Downloader</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, uri)</span>:</span></span><br><span class="line">        self.host = uri.split(<span class="string">"/"</span>)[<span class="number">0</span>]</span><br><span class="line">        self.conn = httplib.HTTPConnection(self.host)</span><br><span class="line">        self.headers = &#123;</span><br><span class="line">            <span class="string">"Accept-Encoding"</span>: <span class="string">"gzip"</span>,</span><br><span class="line">            <span class="string">"Accept"</span>: <span class="string">"text/html"</span>,</span><br><span class="line">            <span class="string">"User-Agent"</span>: <span class="string">"Mozilla/5.0"</span>,</span><br><span class="line">            <span class="string">"Referer"</span>: <span class="string">"http://jandan.net/"</span>,</span><br><span class="line">            <span class="string">"Connection"</span>: <span class="string">"keep-alive"</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_content</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            path = self.uri[len(self.host):]</span><br><span class="line">            self.conn.request(<span class="string">"GET"</span>, path, <span class="keyword">None</span>, self.headers)</span><br><span class="line">            response = self.conn.getresponse()</span><br><span class="line">            <span class="keyword">if</span> response.getheader(<span class="string">"content-encoding"</span>) == <span class="string">"gzip"</span>:</span><br><span class="line">                stream = response.read()</span><br><span class="line">                html_data = gzip.GzipFile(fileobj=StringIO.StringIO(stream)).read().decode(<span class="string">"UTF-8"</span>)</span><br><span class="line">                <span class="keyword">return</span> html_data</span><br><span class="line">        <span class="keyword">except</span>:</span><br><span class="line">            <span class="keyword">print</span> Exception(<span class="string">"get_content error, path: "</span> + path)</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">None</span></span><br></pre></td></tr></table></figure>
+<h2 id="分析内容">分析内容</h2><p>从 HTML 文本中提取出有用信息，对于HTML格式，尽管有现成的库 HTMLParser，但使用上不是很方便，因此用了第三方库 BeautifulSoup。通过组合条件过滤掉不需要的内容。<br>这里主要是遍历文本获取 <strong><em>img</em></strong> 标签，获取 <strong>src</strong> 属性的值。        </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Parser</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">pass</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">parse</span><span class="params">(self, htmlData)</span>:</span></span><br><span class="line">        soup = BeautifulSoup(htmlData)</span><br><span class="line">        l = []</span><br><span class="line">        <span class="keyword">for</span> item <span class="keyword">in</span> soup.find_all(<span class="string">"img"</span>):</span><br><span class="line">            <span class="keyword">if</span> item.parent.name == <span class="string">"p"</span>:</span><br><span class="line">                l.append(item[<span class="string">"src"</span>])</span><br><span class="line">        <span class="keyword">return</span> l</span><br></pre></td></tr></table></figure>
+<h2 id="处理结果">处理结果</h2><p>一般处理类需要对分析后的结果做再加工，保存文件、记录数据库，或者其他方式持久化到硬盘上。此处需要对分析得到的 url 再做一次下载，只是此次的内容变成图片。</p>
+<p>在 Downloader 类的 <code>get_content()</code> 中添加如下分支：      </p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> response.<span class="function"><span class="title">getheader</span><span class="params">(<span class="string">"Content-type"</span>)</span></span> == <span class="string">"image/jpeg"</span>:</span><br><span class="line">	stream = response.<span class="function"><span class="title">read</span><span class="params">()</span></span></span><br><span class="line">	return stream</span><br></pre></td></tr></table></figure>
+<p>处理类调用下载方法并保存图片：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Processor</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">save</span><span class="params">(self, uri, name)</span>:</span></span><br><span class="line">        downloader = Downloader(uri)</span><br><span class="line">        image_data = downloader.get_content()</span><br><span class="line">        <span class="keyword">if</span> image_data <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>:</span><br><span class="line">            <span class="keyword">with</span> open(<span class="string">"./download/"</span> + name, <span class="string">"wb"</span>) <span class="keyword">as</span> f:</span><br><span class="line">                f.write(image_data)</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2014/11/15/consistent-hashing/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">一致性哈希</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+
+
+
+</div>
+      <footer id="footer">
+  <div class="outer">
+    <div id="footer-info">
+    	<div class="footer-left">
+    		&copy; 2015 evtHoriz
+    	</div>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js" type="text/javascript"></script>
+
+
+<script src="/js/mobile.js" type="text/javascript"></script>
+<script src="/js/main.js" type="text/javascript"></script>
+
+
+
+
+
+<! -- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';                 
+    }       
+});
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+
+  </div>
+</body>
+</html>

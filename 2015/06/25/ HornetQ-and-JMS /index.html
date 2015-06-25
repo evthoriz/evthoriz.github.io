@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>从 HornetQ 讲 JMS | yu’s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="HornetQ 简介HornetQ 是众多高性能消息中间件之一，用 Java 实现，由 JBOSS 开源，支持
+
+message persistent
+standalone &amp;amp; embedded
+JMS 1.1 &amp;amp; 2.0 API
+
+JMS 简介JMS 全称 Java Message Service，是一种消息队列服务的规范。所有实现了JMS 的产品（消息中间件）都应该能够通过一个">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从 HornetQ 讲 JMS">
+<meta property="og:url" content="http://evthoriz.github.io/2015/06/25/ HornetQ-and-JMS /index.html">
+<meta property="og:site_name" content="yu’s blog">
+<meta property="og:description" content="HornetQ 简介HornetQ 是众多高性能消息中间件之一，用 Java 实现，由 JBOSS 开源，支持
+
+message persistent
+standalone &amp;amp; embedded
+JMS 1.1 &amp;amp; 2.0 API
+
+JMS 简介JMS 全称 Java Message Service，是一种消息队列服务的规范。所有实现了JMS 的产品（消息中间件）都应该能够通过一个">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="从 HornetQ 讲 JMS">
+<meta name="twitter:description" content="HornetQ 简介HornetQ 是众多高性能消息中间件之一，用 Java 实现，由 JBOSS 开源，支持
+
+message persistent
+standalone &amp;amp; embedded
+JMS 1.1 &amp;amp; 2.0 API
+
+JMS 简介JMS 全称 Java Message Service，是一种消息队列服务的规范。所有实现了JMS 的产品（消息中间件）都应该能够通过一个">
+  
+    <link rel="alternative" href="/atom.xml" title="yu’s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+	<header id="header" class="inner">
+		<a href="/" class="profilepic">
+			
+			<img lazy-src="https://avatars0.githubusercontent.com/u/2124676?v=3&amp;amp;s=460" class="js-avatar">
+			
+		</a>
+
+		<hgroup>
+		  <h1 class="header-author"><a href="/">evtHoriz</a></h1>
+		</hgroup>
+
+		
+		<p class="header-subtitle">脑洞大开</p>
+		
+
+		
+			<div class="switch-btn">
+				<div class="icon">
+					<div class="icon-ctn">
+						<div class="icon-wrap icon-house" data-idx="0">
+							<div class="birdhouse"></div>
+							<div class="birdhouse_holes"></div>
+						</div>
+						<div class="icon-wrap icon-ribbon hide" data-idx="1">
+							<div class="ribbon"></div>
+						</div>
+						
+						
+						<div class="icon-wrap icon-me hide" data-idx="3">
+							<div class="user"></div>
+							<div class="shoulder"></div>
+						</div>
+						
+					</div>
+					
+				</div>
+				<div class="tips-box hide">
+					<div class="tips-arrow"></div>
+					<ul class="tips-inner">
+						<li>菜单</li>
+						<li>标签</li>
+						
+						
+						<li>关于我</li>
+						
+					</ul>
+				</div>
+			</div>
+		
+
+		<div class="switch-area">
+			<div class="switch-wrap">
+				<section class="switch-part switch-part1">
+					<nav class="header-menu">
+						<ul>
+						
+							<li><a href="/">主页</a></li>
+				        
+							<li><a href="/archives">所有文章</a></li>
+				        
+						</ul>
+					</nav>
+					<nav class="header-nav">
+						<div class="social">
+							
+								<a class="github" target="_blank" href="https://github.com/evthoriz/" title="github">github</a>
+					        
+								<a class="rss" target="_blank" href="/atom.xml" title="rss">rss</a>
+					        
+								<a class="zhihu" target="_blank" href="/#" title="zhihu">zhihu</a>
+					        
+								<a class="mail" target="_blank" href="/“yukaiyuan.2012@gmail.com”" title="mail">mail</a>
+					        
+						</div>
+					</nav>
+				</section>
+				
+				
+				<section class="switch-part switch-part2">
+					<div class="widget tagcloud" id="js-tagcloud">
+						<a href="/tags/JMS/" style="font-size: NaNpx;">JMS</a><a href="/tags/python/" style="font-size: NaNpx;">python</a><a href="/tags/中间件/" style="font-size: NaNpx;">中间件</a><a href="/tags/分布式/" style="font-size: NaNpx;">分布式</a><a href="/tags/爬虫/" style="font-size: NaNpx;">爬虫</a><a href="/tags/算法/" style="font-size: NaNpx;">算法</a>
+					</div>
+				</section>
+				
+				
+				
+
+				
+				
+				<section class="switch-part switch-part3">
+				
+					<div id="js-aboutme">感受真理，感受爱</div>
+				</section>
+				
+			</div>
+		</div>
+	</header>				
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+  	<div class="overlay">
+  		<div class="slider-trigger"></div>
+  		<h1 class="header-author js-mobile-header hide">evtHoriz</h1>
+  	</div>
+	<div class="intrude-less">
+		<header id="header" class="inner">
+			<div class="profilepic">
+				<img lazy-src="https://avatars0.githubusercontent.com/u/2124676?v=3&amp;amp;s=460" class="js-avatar">
+			</div>
+			<hgroup>
+			  <h1 class="header-author">evtHoriz</h1>
+			</hgroup>
+			
+			<p class="header-subtitle">脑洞大开</p>
+			
+			<nav class="header-menu">
+				<ul>
+				
+					<li><a href="/">主页</a></li>
+		        
+					<li><a href="/archives">所有文章</a></li>
+		        
+		        <div class="clearfix"></div>
+				</ul>
+			</nav>
+			<nav class="header-nav">
+				<div class="social">
+					
+						<a class="github" target="_blank" href="https://github.com/evthoriz/" title="github">github</a>
+			        
+						<a class="rss" target="_blank" href="/atom.xml" title="rss">rss</a>
+			        
+						<a class="zhihu" target="_blank" href="/#" title="zhihu">zhihu</a>
+			        
+						<a class="mail" target="_blank" href="/“yukaiyuan.2012@gmail.com”" title="mail">mail</a>
+			        
+				</div>
+			</nav>
+		</header>				
+	</div>
+</nav>
+      <div class="body-wrap"><article id="post- HornetQ-and-JMS " class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2015/06/25/ HornetQ-and-JMS /" class="article-date">
+  	<time datetime="2015-06-24T16:00:00.000Z" itemprop="datePublished">2015-06-25</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      从 HornetQ 讲 JMS
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JMS/">JMS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/中间件/">中间件</a></li></ul>
+	</div>
+
+        
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="HornetQ_简介">HornetQ 简介</h2><p>HornetQ 是众多高性能消息中间件之一，用 Java 实现，由 JBOSS 开源，支持</p>
+<ul>
+<li>message persistent</li>
+<li>standalone &amp; embedded</li>
+<li>JMS 1.1 &amp; 2.0 API</li>
+</ul>
+<h2 id="JMS_简介">JMS 简介</h2><p>JMS 全称 Java Message Service，是一种消息队列服务的规范。所有实现了JMS 的产品（消息中间件）都应该能够通过一个符合 JMS 规范的客户端访问。HornetQ 提供了一套 core api 用于对自己 service 的原生访问，同时也按照 JMS 规范在核心 API 上封装了一层 JMS Facade。<br>使用 JMS 可以达到的目的 </p>
+<ul>
+<li>系统解耦</li>
+<li>异步</li>
+</ul>
+<p>JMS 支持的域模型    </p>
+<ul>
+<li>Queue</li>
+<li>Pub/Sub</li>
+</ul>
+<a id="more"></a>
+<h4 id="JMS_1-1_通用接口">JMS 1.1 通用接口</h4><html><br><table border="1"><thead><br><tr><th>JMS common interface</th><br><th>PTP domain</th><br><th>Pub/sub domain</th></tr></thead><br><tbody><tr><br><td> ConnectionFactory </td><td> QueueConnectionFactory </td><td>TopicConnectionFactory</td></tr><tr><td> Connection</td><td> QueueConnection</td><td> TopicConnection</td></tr><tr><td> Destination</td><td> Queue</td><td> Topic</td></tr><tr><td> Session</td><td> QueueSession</td><td> TopicSession</td></tr><tr><td> MessageProducer</td><td> QueueSender</td><td> TopicPublisher</td></tr><tr><td> MessageConsumer</td><td> QueueReceiver,<br> QueueBrowser</td><td> TopicSubscriber</td></tr></tbody></table><br></html>
+
+<p>JMS 2.0 简化了 API 设计，去掉了 Connection 和 Session 转而提供一个JMSContext 用来隐式处理连接的打开和会话的建立。</p>
+<h2 id="HornetQ_实战">HornetQ 实战</h2><ul>
+<li>环境：MacOS</li>
+<li>HornetQ版本：2.4.7.final<br>HornetQ支持嵌入式，意味着不必单独启动一个服务。</li>
+</ul>
+<p>首先只需要 maven 引入两个jar 文件即可。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">dependency</span>&gt;</span>  </span><br><span class="line">    <span class="tag">&lt;<span class="title">groupId</span>&gt;</span>org.hornetq<span class="tag">&lt;/<span class="title">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">artifactId</span>&gt;</span>hornetq-jms-client<span class="tag">&lt;/<span class="title">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">version</span>&gt;</span>2.4.7.Final<span class="tag">&lt;/<span class="title">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="title">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">groupId</span>&gt;</span>org.hornetq<span class="tag">&lt;/<span class="title">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">artifactId</span>&gt;</span>hornetq-jms-server<span class="tag">&lt;/<span class="title">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">version</span>&gt;</span>2.4.7.Final<span class="tag">&lt;/<span class="title">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="Step1-_启动_HornetQ_服务">Step1. 启动 HornetQ 服务</h3> <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">EmbeddedJMS jms = <span class="keyword">new</span> EmbeddedJMS();</span><br><span class="line">jms.start();</span><br></pre></td></tr></table></figure>
+<p> <code>EmbeddedJMS</code>这个类继承自<code>EmbeddedHornetQ</code>，扮演了三个角色，</p>
+<ul>
+<li>JNDI server, 用于在 client 端根据名字获取服务端的对象例如 Destination</li>
+<li>JMS Service, JMS API 到 Core API 的转换</li>
+<li><p>HornetQ core server. 核心服务    </p>
+<p>HornetQ 服务启动时会去读默认配置文件 hornetq-configuration.xml。<br>从中获取有关server的各项配置，大部分的配置项都有默认值可以不手工配置。必须配置的有 acceptor，这是HornetQ service启动时使用的接受器。此处接收器和连接器的必须是匹配的，决定了客户端和服务端通信的传输协议。</p>
+</li>
+</ul>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- Connectors --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="title">connectors</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">connector</span> <span class="attribute">name</span>=<span class="value">"in-vm"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">factory-class</span>&gt;</span>org.hornetq.core.remoting.impl.invm.InVMConnectorFactory<span class="tag">&lt;/<span class="title">factory-class</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="title">connector</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">connectors</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- Acceptors --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="title">acceptors</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">acceptor</span> <span class="attribute">name</span>=<span class="value">"in-vm"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">factory-class</span>&gt;</span>org.hornetq.core.remoting.impl.invm.InVMAcceptorFactory<span class="tag">&lt;/<span class="title">factory-class</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!-- 指定接收端口 --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">param</span> <span class="attribute">key</span>=<span class="value">"port"</span> <span class="attribute">value</span>=<span class="value">"5446"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="title">acceptor</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">acceptors</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p> HornetQ 定义了两种类型的 connector/acceptor</p>
+<ul>
+<li>invm: 当 client 和 server 在同一个VM中（intra Virtual Machine）</li>
+<li>netty: 当 client 和 server 在不同的VM中</li>
+</ul>
+<p>第一步完成后 HornetQ 的服务端就正式启动了。</p>
+<h3 id="Step2-_建立_HornetQ_客户端">Step2. 建立 HornetQ 客户端</h3><p>注意以下步骤的代码实现完全按照上述表格中的JMS规范</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="javadoc">/** ------------- 不通过 JNDI，直接创建实例 ------------- **/</span></span><br><span class="line"><span class="comment">// 创建 destination</span></span><br><span class="line">Queue queue = HornetQJMSClient.createQueue(<span class="string">"exampleQueue"</span>);</span><br><span class="line">Map&lt;String, Object&gt; connectionParams = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">connectionParams.put(TransportConstants.PORT_PROP_NAME, <span class="number">5446</span>);</span><br><span class="line">TransportConfiguration transportConfiguration = <span class="keyword">new</span> TransportConfiguration(InVMConnectorFactory.class.getName(), connectionParams);</span><br><span class="line"><span class="comment">// 创建 connection factory</span></span><br><span class="line">ConnectionFactory cf = HornetQJMSClient.createConnectionFactoryWithoutHA(JMSFactoryType.CF, transportConfiguration);</span><br></pre></td></tr></table></figure>
+<p>创建 connectionFactory 用到的传输层配置里，可以看见使用了<code>InVMConnectorFactory</code>这个类，和 server 端配置保持一致。</p>
+<p>除了这种实例化的方式创建 destination 和 connectionFactory 以外，还可以通过 JNDI 的方式。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="javadoc">/** -------- 通过 JNDI 获取 ConnectionFactory 和 Queue -------- **/</span></span><br><span class="line">ConnectionFactory cf = (ConnectionFactory) jms.lookup(<span class="string">"ConnectionFactory"</span>);</span><br><span class="line">Queue queue = (Queue) jms.lookup(<span class="string">"/queue/exampleQueue"</span>);</span><br></pre></td></tr></table></figure>
+<p>这需要在 hornetq-jms.xml 中配置如下，</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 当使用 JNDI 来获取对象时， 需要配置以下信息 --&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- 配置 connectionFactroy 的名称以及绑定的 connector --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="title">connection-factory</span> <span class="attribute">name</span>=<span class="value">"ConnectionFactory"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">connectors</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">connector-ref</span> <span class="attribute">connector-name</span>=<span class="value">"in-vm"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="title">connectors</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">entries</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">entry</span> <span class="attribute">name</span>=<span class="value">"ConnectionFactory"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="title">entries</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">connection-factory</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!--配置 queue的名称 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="title">queue</span> <span class="attribute">name</span>=<span class="value">"exampleQueue"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">entry</span> <span class="attribute">name</span>=<span class="value">"/queue/exampleQueue"</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">queue</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>第二步完成后，就有了 Queue 和 ConnectionFactory。</p>
+<h3 id="Step3-_生产和消费数据">Step3. 生产和消费数据</h3><p>上面提到 JMS2.0 简化了API设计，不再需要使用 connection 和 session 对象来获取 producer 和 consumer。而可以直接从 JMSContext 中生成。JMSContext 实现了<code>AutoClosable</code>接口，故在 JAVA 7中，可以使用 try-with-resources 声明。</p>
+<p>生产者代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// auto_acknowledge 使得每次接受到消息都会反回一个确认通知</span></span><br><span class="line"><span class="keyword">try</span> (JMSContext jmsContext = cf.createContext(JMSContext.AUTO_ACKNOWLEDGE)) &#123;</span><br><span class="line">    jmsContext.createProducer()</span><br><span class="line">        <span class="comment">// 延时两秒后发送给 server</span></span><br><span class="line">        .setDeliveryDelay(<span class="number">2000</span>)</span><br><span class="line">        <span class="comment">// 持久化到磁盘</span></span><br><span class="line">        .setDeliveryMode(DeliveryMode.PERSISTENT)</span><br><span class="line">        .send(queue, <span class="keyword">new</span> Date());            </span><br><span class="line"></span><br><span class="line">&#125; <span class="keyword">catch</span> (JMSRuntimeException e) &#123;</span><br><span class="line">    e.printStackTrace();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>消费者同理</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jmsContext.createConsumer(<span class="built_in">queue</span>).receive();</span><br></pre></td></tr></table></figure>
+<p>显而易见的是，关闭持久化以及使用<code>DUPS_OK_ACKNOWLEDGE</code>可以提升性能。</p>
+<h2 id="Ref-">Ref.</h2><ul>
+<li><a href="http://docs.jboss.org/hornetq/2.4.0.Final/docs/user-manual/html_single/index.html" target="_blank" rel="external">HornetQ 2.4.0 User-Manual</a></li>
+<li><a href="http://www.ibm.com/developerworks/java/tutorials/j-jms/j-jms-updated.html" target="_blank" rel="external">Introducing the Java Message Service</a></li>
+<li><a href="https://www.gitbook.com/book/kimmking/jms20cn/details" target="_blank" rel="external">JMS2.0规范中文版</a></li>
+<li><a href="http://hornetq.blogspot.com/2009/10/understanding-connectors-acceptors.html" target="_blank" rel="external">Understanding Connectors &amp; Acceptors</a></li>
+</ul>
+
+      
+    </div>
+    
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2015/03/15/write-a-cawler/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">写一个简单的爬虫</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+
+
+
+
+</div>
+      <footer id="footer">
+  <div class="outer">
+    <div id="footer-info">
+    	<div class="footer-left">
+    		&copy; 2015 evtHoriz
+    	</div>
+      	<div class="footer-right">
+      		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
+      	</div>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+
+
+<script>
+	var yiliaConfig = {
+		fancybox: true,
+		mathjax: true,
+		animate: true,
+		isHome: false,
+		isPost: true,
+		isArchive: false,
+		isTag: false,
+		isCategory: false,
+		open_in_new: false
+	}
+</script>
+<script src="http://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js" type="text/javascript"></script>
+<script src="/js/main.js" type="text/javascript"></script>
+
+
+
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';                 
+    }       
+});
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  </div>
+</body>
+</html>

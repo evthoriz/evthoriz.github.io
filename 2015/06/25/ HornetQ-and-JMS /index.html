@@ -241,8 +241,47 @@ JMS 简介JMS 全称 Java Message Service，是一种消息队列服务的规范
 <li>Pub/Sub</li>
 </ul>
 <a id="more"></a>
-<h4 id="JMS_1-1_通用接口">JMS 1.1 通用接口</h4><html><br><table border="1"><thead><br><tr><th>JMS common interface</th><br><th>PTP domain</th><br><th>Pub/sub domain</th></tr></thead><br><tbody><tr><br><td> ConnectionFactory </td><td> QueueConnectionFactory </td><td>TopicConnectionFactory</td></tr><tr><td> Connection</td><td> QueueConnection</td><td> TopicConnection</td></tr><tr><td> Destination</td><td> Queue</td><td> Topic</td></tr><tr><td> Session</td><td> QueueSession</td><td> TopicSession</td></tr><tr><td> MessageProducer</td><td> QueueSender</td><td> TopicPublisher</td></tr><tr><td> MessageConsumer</td><td> QueueReceiver,<br> QueueBrowser</td><td> TopicSubscriber</td></tr></tbody></table><br></html>
-
+<h4 id="JMS_1-1_通用接口">JMS 1.1 通用接口</h4><table>
+<thead>
+<tr>
+<th>JMS common interface</th>
+<th>PTP domain</th>
+<th>Pub/sub domain</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ConnectionFactory</td>
+<td>QueueConnectionFactroy</td>
+<td>TopicConnectionFactory</td>
+</tr>
+<tr>
+<td>Connection</td>
+<td>QueueConnection</td>
+<td>TopicConnection</td>
+</tr>
+<tr>
+<td>Destination</td>
+<td>Queue</td>
+<td>Topic</td>
+</tr>
+<tr>
+<td>Session</td>
+<td>QueueSession</td>
+<td>TopicSession</td>
+</tr>
+<tr>
+<td>MessageProducer</td>
+<td>QueueSender</td>
+<td>TopicPublisher</td>
+</tr>
+<tr>
+<td>MessageConsumer</td>
+<td>QueueReceiver,QueueBrowser</td>
+<td>TopicSubscriber</td>
+</tr>
+</tbody>
+</table>
 <p>JMS 2.0 简化了 API 设计，去掉了 Connection 和 Session 转而提供一个JMSContext 用来隐式处理连接的打开和会话的建立。</p>
 <h2 id="HornetQ_实战">HornetQ 实战</h2><ul>
 <li>环境：MacOS</li>

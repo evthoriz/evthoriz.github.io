@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Geohash 算法的8个矩形 | yu’s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="基本原理及留存问题按照 geohash 的算法原理，平面空间最后是被划分为规整的矩形，每个矩形内部会拥有同一个 geohash 值。使用时只需要计算出当前点的 geohash 值，就可以从数据库中按照 geohash 这个索引获取所有这个矩形内的点的数据。这些点即被认为是当前点的附近点。然后按照距离公式计算两点距离，即可从中找到离目标最近的点。
+问题在于，在当前点位于矩形的边界位置或者靠近边界位置">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Geohash 算法的8个矩形">
+<meta property="og:url" content="http://evthoriz.github.io/2015/07/03/Geohash 算法的边界问题/index.html">
+<meta property="og:site_name" content="yu’s blog">
+<meta property="og:description" content="基本原理及留存问题按照 geohash 的算法原理，平面空间最后是被划分为规整的矩形，每个矩形内部会拥有同一个 geohash 值。使用时只需要计算出当前点的 geohash 值，就可以从数据库中按照 geohash 这个索引获取所有这个矩形内的点的数据。这些点即被认为是当前点的附近点。然后按照距离公式计算两点距离，即可从中找到离目标最近的点。
+问题在于，在当前点位于矩形的边界位置或者靠近边界位置">
+<meta property="og:image" content="\img\geo1.png">
+<meta property="og:image" content="\img\geo2.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Geohash 算法的8个矩形">
+<meta name="twitter:description" content="基本原理及留存问题按照 geohash 的算法原理，平面空间最后是被划分为规整的矩形，每个矩形内部会拥有同一个 geohash 值。使用时只需要计算出当前点的 geohash 值，就可以从数据库中按照 geohash 这个索引获取所有这个矩形内的点的数据。这些点即被认为是当前点的附近点。然后按照距离公式计算两点距离，即可从中找到离目标最近的点。
+问题在于，在当前点位于矩形的边界位置或者靠近边界位置">
+  
+    <link rel="alternative" href="/atom.xml" title="yu’s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+	<header id="header" class="inner">
+		<a href="/" class="profilepic">
+			
+			<img lazy-src="https://avatars0.githubusercontent.com/u/2124676?v=3&amp;amp;s=460" class="js-avatar">
+			
+		</a>
+
+		<hgroup>
+		  <h1 class="header-author"><a href="/">evtHoriz</a></h1>
+		</hgroup>
+
+		
+		<p class="header-subtitle">脑洞大开</p>
+		
+
+		
+			<div class="switch-btn">
+				<div class="icon">
+					<div class="icon-ctn">
+						<div class="icon-wrap icon-house" data-idx="0">
+							<div class="birdhouse"></div>
+							<div class="birdhouse_holes"></div>
+						</div>
+						<div class="icon-wrap icon-ribbon hide" data-idx="1">
+							<div class="ribbon"></div>
+						</div>
+						
+						
+						<div class="icon-wrap icon-me hide" data-idx="3">
+							<div class="user"></div>
+							<div class="shoulder"></div>
+						</div>
+						
+					</div>
+					
+				</div>
+				<div class="tips-box hide">
+					<div class="tips-arrow"></div>
+					<ul class="tips-inner">
+						<li>菜单</li>
+						<li>标签</li>
+						
+						
+						<li>关于我</li>
+						
+					</ul>
+				</div>
+			</div>
+		
+
+		<div class="switch-area">
+			<div class="switch-wrap">
+				<section class="switch-part switch-part1">
+					<nav class="header-menu">
+						<ul>
+						
+							<li><a href="/">主页</a></li>
+				        
+							<li><a href="/archives">所有文章</a></li>
+				        
+						</ul>
+					</nav>
+					<nav class="header-nav">
+						<div class="social">
+							
+								<a class="github" target="_blank" href="https://github.com/evthoriz/" title="github">github</a>
+					        
+								<a class="rss" target="_blank" href="/atom.xml" title="rss">rss</a>
+					        
+								<a class="zhihu" target="_blank" href="/#" title="zhihu">zhihu</a>
+					        
+								<a class="mail" target="_blank" href="/“yukaiyuan.2012@gmail.com”" title="mail">mail</a>
+					        
+						</div>
+					</nav>
+				</section>
+				
+				
+				<section class="switch-part switch-part2">
+					<div class="widget tagcloud" id="js-tagcloud">
+						<a href="/tags/JMS/" style="font-size: 10px;">JMS</a><a href="/tags/LBS/" style="font-size: 10px;">LBS</a><a href="/tags/Redis/" style="font-size: 10px;">Redis</a><a href="/tags/python/" style="font-size: 10px;">python</a><a href="/tags/中间件/" style="font-size: 10px;">中间件</a><a href="/tags/分布式/" style="font-size: 20px;">分布式</a><a href="/tags/爬虫/" style="font-size: 10px;">爬虫</a><a href="/tags/算法/" style="font-size: 20px;">算法</a>
+					</div>
+				</section>
+				
+				
+				
+
+				
+				
+				<section class="switch-part switch-part3">
+				
+					<div id="js-aboutme">感受真理，感受爱</div>
+				</section>
+				
+			</div>
+		</div>
+	</header>				
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+  	<div class="overlay">
+  		<div class="slider-trigger"></div>
+  		<h1 class="header-author js-mobile-header hide">evtHoriz</h1>
+  	</div>
+	<div class="intrude-less">
+		<header id="header" class="inner">
+			<div class="profilepic">
+				<img lazy-src="https://avatars0.githubusercontent.com/u/2124676?v=3&amp;amp;s=460" class="js-avatar">
+			</div>
+			<hgroup>
+			  <h1 class="header-author">evtHoriz</h1>
+			</hgroup>
+			
+			<p class="header-subtitle">脑洞大开</p>
+			
+			<nav class="header-menu">
+				<ul>
+				
+					<li><a href="/">主页</a></li>
+		        
+					<li><a href="/archives">所有文章</a></li>
+		        
+		        <div class="clearfix"></div>
+				</ul>
+			</nav>
+			<nav class="header-nav">
+				<div class="social">
+					
+						<a class="github" target="_blank" href="https://github.com/evthoriz/" title="github">github</a>
+			        
+						<a class="rss" target="_blank" href="/atom.xml" title="rss">rss</a>
+			        
+						<a class="zhihu" target="_blank" href="/#" title="zhihu">zhihu</a>
+			        
+						<a class="mail" target="_blank" href="/“yukaiyuan.2012@gmail.com”" title="mail">mail</a>
+			        
+				</div>
+			</nav>
+		</header>				
+	</div>
+</nav>
+      <div class="body-wrap"><article id="post-Geohash 算法的边界问题" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2015/07/03/Geohash 算法的边界问题/" class="article-date">
+  	<time datetime="2015-07-03T15:14:50.000Z" itemprop="datePublished">2015-07-03</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Geohash 算法的8个矩形
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/LBS/">LBS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/算法/">算法</a></li></ul>
+	</div>
+
+        
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="基本原理及留存问题">基本原理及留存问题</h2><p>按照 geohash 的算法原理，平面空间最后是被划分为规整的矩形，每个矩形内部会拥有同一个 geohash 值。使用时只需要计算出当前点的 geohash 值，就可以从数据库中按照 geohash 这个索引获取所有这个矩形内的点的数据。这些点即被认为是当前点的附近点。然后按照距离公式计算两点距离，即可从中找到离目标最近的点。</p>
+<p>问题在于，在当前点位于矩形的边界位置或者靠近边界位置时，与其最近的点可能处于边界另一侧的矩形内，这种情形下就无法匹配到最近的点。针对这种情况最直观的想法是把当前点所在矩形的周围八个矩形也包括进来，这样能保证输入的点集一定包括潜在的最近点。</p>
+<a id="more"></a>
+<p>那在数据库中，<code>如何找到这八个 geohash 呢</code>？根据 geohash 算法，经纬度分别被转换成了一个二进制串，然后按照奇纬偶经的规则合并两个串。再用 Base32 对合并后的二进制串进行编码。这样生成的结果也即 geohash 值对于人来说就能比较直观的拿来进行比较了。前缀重合度越高，这两个 geohash 越近。那这八个矩形是否也遵循这个直观的规律呢？不是。</p>
+<p>当当前位置所靠近的边界是在划分的前期产生时，位于边界两侧的 geohash 会有巨大不同。因为按照算法的设计，<code>越早</code>的划分必定具有<code>越大</code>的权重。最简单的例子就是赤道两边的点，就算挨着，其 geohash 也会大不同。因为在第一道划分时，它们就被分开了。半球不同怎么能在一起。</p>
+<p>既然无法通过geohash找到周围的8个矩形，那只能溯流而上思考了。在 Base32 编码前的那个二进制串可以么？</p>
+<h2 id="定位周围8个矩形的算法">定位周围8个矩形的算法</h2><p>下面的算法是用 Processing 完成的，原因是为了能快速得到可视化的效果。代码语法同Java。</p>
+<h3 id="效果图">效果图</h3><p><img src="\img\geo1.png" alt="image1"></p>
+<p><img src="\img\geo2.png" alt="image2"></p>
+<p>从最原始的一个平面开始将平面不断4分。将切分后的矩形存下来，如果还要继续递归切分，则从 map 里将该矩形移除。这样完整的一套切分完成后，就得到了所有的矩形，以及它们的经度二进制串和纬度二进制串。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> CUTTIMES = <span class="number">4</span>;</span><br><span class="line">ArrayList&lt;Box&gt; allBoxes = <span class="keyword">new</span> ArrayList&lt;Box&gt;();</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">cutBox</span><span class="params">(Box box, <span class="keyword">int</span> cuttime)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (cuttime &gt; CUTTIMES) &#123;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    allBoxes.remove(box);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  Box leftTopBox = <span class="keyword">new</span> Box(box.x0, box.y0, box.w/<span class="number">2.0</span>, box.h/<span class="number">2.0</span>);</span><br><span class="line">  leftTopBox.addBin(box.lngSb, box.latSb, <span class="string">'0'</span>, <span class="string">'0'</span>);</span><br><span class="line">  Box rightBottomBox = <span class="keyword">new</span> Box(box.x0 + box.w/<span class="number">2.0</span>, box.y0 + box.h/<span class="number">2.0</span>, box.w/<span class="number">2.0</span>, box.h/<span class="number">2.0</span>);</span><br><span class="line">  rightBottomBox.addBin(box.lngSb, box.latSb, <span class="string">'1'</span>, <span class="string">'1'</span>);</span><br><span class="line">  Box rightTopBox = <span class="keyword">new</span> Box(box.x0 + box.w/<span class="number">2</span>, box.y0, box.w/<span class="number">2.0</span>, box.h/<span class="number">2.0</span>);</span><br><span class="line">  rightTopBox.addBin(box.lngSb, box.latSb, <span class="string">'1'</span>, <span class="string">'0'</span>);</span><br><span class="line">  Box leftBottomBox = <span class="keyword">new</span> Box(box.x0, box.y0 + box.h/<span class="number">2</span>, box.w/<span class="number">2.0</span>, box.h/<span class="number">2.0</span>);</span><br><span class="line">  leftBottomBox.addBin(box.lngSb, box.latSb, <span class="string">'0'</span>, <span class="string">'1'</span>);</span><br><span class="line">  allBoxes.add(leftTopBox);</span><br><span class="line">  allBoxes.add(rightBottomBox);</span><br><span class="line">  allBoxes.add(rightTopBox);</span><br><span class="line">  allBoxes.add(leftBottomBox);</span><br><span class="line">  cutBox(leftTopBox, cuttime+<span class="number">1</span>);</span><br><span class="line">  cutBox(rightBottomBox, cuttime+<span class="number">1</span>);</span><br><span class="line">  cutBox(rightTopBox, cuttime+<span class="number">1</span>);</span><br><span class="line">  cutBox(leftBottomBox, cuttime+<span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于经度一个维度来说，无论切分几次，它的左邻和右邻都只会和它相差<code>1</code>。画一下就知道它是一棵<code>有序的01满二叉树</code>。根据当前矩形的经度串，很容易就获得了它的两个东西邻接经度串。同理，可以根据其纬度串获取南北邻接纬度串。连同当前矩形的经度串和纬度串，就能组合得到周边的<code>8个矩形的二进制串</code>了。Base32 编码后的到 geohash 值，即是所需要的8个索引了。</p>
+<figure class="highlight processing"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">ArrayList&lt;Box&gt; findAroundBoxes(Box <span class="built_in">box</span>) &#123;</span><br><span class="line">  ArrayList&lt;Box&gt; al = <span class="keyword">new</span> ArrayList&lt;Box&gt;();</span><br><span class="line"></span><br><span class="line">  <span class="built_in">int</span>[] lats = convertToInt(<span class="built_in">box</span>.latSb);</span><br><span class="line">  <span class="built_in">int</span>[] lngs = convertToInt(<span class="built_in">box</span>.lngSb);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">int</span>[] leftLats = calAdj(lats, -<span class="number">1</span>);</span><br><span class="line">  <span class="built_in">int</span>[] rightLats = calAdj(lats, <span class="number">1</span>);</span><br><span class="line">  <span class="built_in">int</span>[] topLngs = calAdj(lngs, -<span class="number">1</span>);</span><br><span class="line">  <span class="built_in">int</span>[] bottomLngs = calAdj(lngs, +<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">String</span>[] latlngStr = <span class="keyword">new</span> <span class="keyword">String</span>[<span class="number">8</span>];</span><br><span class="line"></span><br><span class="line">  latlngStr[<span class="number">0</span>] = joinLatLngBin(leftLats, topLngs);</span><br><span class="line">  latlngStr[<span class="number">1</span>] = joinLatLngBin(leftLats, lngs);</span><br><span class="line">  latlngStr[<span class="number">2</span>] = joinLatLngBin(leftLats, bottomLngs);</span><br><span class="line">  latlngStr[<span class="number">3</span>] = joinLatLngBin(lats, topLngs);</span><br><span class="line">  latlngStr[<span class="number">4</span>] = joinLatLngBin(lats, bottomLngs);</span><br><span class="line">  latlngStr[<span class="number">5</span>] = joinLatLngBin(rightLats, topLngs);</span><br><span class="line">  latlngStr[<span class="number">6</span>] = joinLatLngBin(rightLats, lngs);</span><br><span class="line">  latlngStr[<span class="number">7</span>] = joinLatLngBin(rightLats, bottomLngs);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">String</span> <span class="built_in">str</span> : latlngStr) &#123;  </span><br><span class="line">    <span class="keyword">if</span> (boxMap.containsKey(<span class="built_in">str</span>)) &#123;</span><br><span class="line">      al.<span class="built_in">add</span>(boxMap.<span class="built_in">get</span>(<span class="built_in">str</span>));</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> al;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这边偷了个懒，没有实现Base32编码，少做了一步，直接用二进制串做索引，不过原理是一样的。</p>
+<h3 id="Base64_&amp;_Base32_简介">Base64 &amp; Base32 简介</h3><p>Base64 最早是在邮件系统里对数据进行简单加密的编码算算法，把3个 ASCII 码编码成4个 base64 字符，让人不能一眼分辨出内容。这种编码方式现在经常被用来将二进制数据展示为可辨认字符的手段。Base32 也是一个道理，将5个 ASCII 字符编码为8个 Base32 字符，对二进制来说就是把40个二进制位，编码成8个 Base32 字符，也即5个二进制位编码成一个 Base32 字符。</p>
+<p>完整的代码见 <a href="https://github.com/evthoriz" target="_blank" rel="external">Github</a></p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2015/06/28/About-Redis-Cluster/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">谈谈 Redis3.0 的集群处理</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+
+
+
+
+</div>
+      <footer id="footer">
+  <div class="outer">
+    <div id="footer-info">
+    	<div class="footer-left">
+    		&copy; 2015 evtHoriz
+    	</div>
+      	<div class="footer-right">
+      		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
+      	</div>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+
+
+<script>
+	var yiliaConfig = {
+		fancybox: true,
+		mathjax: true,
+		animate: true,
+		isHome: false,
+		isPost: true,
+		isArchive: false,
+		isTag: false,
+		isCategory: false,
+		open_in_new: false
+	}
+</script>
+<script src="http://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js" type="text/javascript"></script>
+<script src="/js/main.js" type="text/javascript"></script>
+
+
+
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';                 
+    }       
+});
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  </div>
+</body>
+</html>

@@ -107,7 +107,7 @@
 				
 				<section class="switch-part switch-part2">
 					<div class="widget tagcloud" id="js-tagcloud">
-						<a href="/tags/JMS/" style="font-size: 10px;">JMS</a><a href="/tags/LBS/" style="font-size: 10px;">LBS</a><a href="/tags/Redis/" style="font-size: 10px;">Redis</a><a href="/tags/python/" style="font-size: 10px;">python</a><a href="/tags/中间件/" style="font-size: 10px;">中间件</a><a href="/tags/分布式/" style="font-size: 20px;">分布式</a><a href="/tags/爬虫/" style="font-size: 10px;">爬虫</a><a href="/tags/算法/" style="font-size: 20px;">算法</a>
+						<a href="/tags/JMS/" style="font-size: 10px;">JMS</a><a href="/tags/LBS/" style="font-size: 10px;">LBS</a><a href="/tags/RPC/" style="font-size: 10px;">RPC</a><a href="/tags/Redis/" style="font-size: 10px;">Redis</a><a href="/tags/python/" style="font-size: 10px;">python</a><a href="/tags/中间件/" style="font-size: 10px;">中间件</a><a href="/tags/分布式/" style="font-size: 20px;">分布式</a><a href="/tags/框架/" style="font-size: 10px;">框架</a><a href="/tags/爬虫/" style="font-size: 10px;">爬虫</a><a href="/tags/算法/" style="font-size: 20px;">算法</a>
 					</div>
 				</section>
 				
@@ -170,6 +170,65 @@
 	</div>
 </nav>
       <div class="body-wrap">
+  
+    <article id="post-gRPC-tutorial" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2015/07/07/gRPC-tutorial/" class="article-date">
+  	<time datetime="2015-07-06T16:00:00.000Z" itemprop="datePublished">2015-07-07</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/07/07/gRPC-tutorial/">gRPC 入门及源码分析</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="基于_protobuf_的_RPC_框架">基于 protobuf 的 RPC 框架</h2><p>在众多序列化器中，protobuf 的设计在速度、体积以及兼容性的考虑上折中的非常好。跨语言跨平台，简单易用，受众广泛。只是不像 thrift 有配套的 RPC 框架实现。gRPC 即是最近由 google 开源的一套基于 protobuf 的 RPC 框架，当然，它也支持 Json，Thrift，XML 等其他序列化方式。</p>
+<h2 id="RPC_架构">RPC 架构</h2><p><strong>RPC</strong> 的实现思路大同小异，以动态代理为例，定义好接口，用一个代理假装实现了这个接口（真正的实现放在服务端），供客户端调用，代理内部将该方法调用封装成一个网络请求送到服务端。服务端根据参数找到对应的注册好的对象处理，返回给客户端。<br>
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/RPC/">RPC</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/框架/">框架</a></li></ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a  href="/2015/07/07/gRPC-tutorial/#more">more >></a>
+        </p>
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
   
     <article id="post-Geohash 算法的边界问题" class="article article-type-post" itemscope itemprop="blogPost">
   

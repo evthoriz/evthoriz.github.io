@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>gRPC 入门及源码分析 | yu’s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="基于 protobuf 的 RPC 框架在众多序列化器中，protobuf 的设计在速度、体积以及兼容性的考虑上折中的非常好。跨语言跨平台，简单易用，受众广泛。只是不像 thrift 有配套的 RPC 框架实现。gRPC 即是最近由 google 开源的一套基于 protobuf 的 RPC 框架，当然，它也支持 Json，Thrift，XML 等其他序列化方式。
+RPC 架构RPC 的实现思路大">
+<meta property="og:type" content="article">
+<meta property="og:title" content="gRPC 入门及源码分析">
+<meta property="og:url" content="http://evthoriz.github.io/2015/07/07/gRPC-tutorial/index.html">
+<meta property="og:site_name" content="yu’s blog">
+<meta property="og:description" content="基于 protobuf 的 RPC 框架在众多序列化器中，protobuf 的设计在速度、体积以及兼容性的考虑上折中的非常好。跨语言跨平台，简单易用，受众广泛。只是不像 thrift 有配套的 RPC 框架实现。gRPC 即是最近由 google 开源的一套基于 protobuf 的 RPC 框架，当然，它也支持 Json，Thrift，XML 等其他序列化方式。
+RPC 架构RPC 的实现思路大">
+<meta property="og:image" content="\img\gRPC_concept.png">
+<meta property="og:image" content="\img\Grpc_gen_class.png">
+<meta property="og:image" content="\img\Calls.png">
+<meta property="og:image" content="\img\grpc-stub.png">
+<meta property="og:image" content="\img\server-Calls.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="gRPC 入门及源码分析">
+<meta name="twitter:description" content="基于 protobuf 的 RPC 框架在众多序列化器中，protobuf 的设计在速度、体积以及兼容性的考虑上折中的非常好。跨语言跨平台，简单易用，受众广泛。只是不像 thrift 有配套的 RPC 框架实现。gRPC 即是最近由 google 开源的一套基于 protobuf 的 RPC 框架，当然，它也支持 Json，Thrift，XML 等其他序列化方式。
+RPC 架构RPC 的实现思路大">
+  
+    <link rel="alternative" href="/atom.xml" title="yu’s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+	<header id="header" class="inner">
+		<a href="/" class="profilepic">
+			
+			<img lazy-src="https://avatars0.githubusercontent.com/u/2124676?v=3&amp;amp;s=460" class="js-avatar">
+			
+		</a>
+
+		<hgroup>
+		  <h1 class="header-author"><a href="/">evtHoriz</a></h1>
+		</hgroup>
+
+		
+		<p class="header-subtitle">脑洞大开</p>
+		
+
+		
+			<div class="switch-btn">
+				<div class="icon">
+					<div class="icon-ctn">
+						<div class="icon-wrap icon-house" data-idx="0">
+							<div class="birdhouse"></div>
+							<div class="birdhouse_holes"></div>
+						</div>
+						<div class="icon-wrap icon-ribbon hide" data-idx="1">
+							<div class="ribbon"></div>
+						</div>
+						
+						
+						<div class="icon-wrap icon-me hide" data-idx="3">
+							<div class="user"></div>
+							<div class="shoulder"></div>
+						</div>
+						
+					</div>
+					
+				</div>
+				<div class="tips-box hide">
+					<div class="tips-arrow"></div>
+					<ul class="tips-inner">
+						<li>菜单</li>
+						<li>标签</li>
+						
+						
+						<li>关于我</li>
+						
+					</ul>
+				</div>
+			</div>
+		
+
+		<div class="switch-area">
+			<div class="switch-wrap">
+				<section class="switch-part switch-part1">
+					<nav class="header-menu">
+						<ul>
+						
+							<li><a href="/">主页</a></li>
+				        
+							<li><a href="/archives">所有文章</a></li>
+				        
+						</ul>
+					</nav>
+					<nav class="header-nav">
+						<div class="social">
+							
+								<a class="github" target="_blank" href="https://github.com/evthoriz/" title="github">github</a>
+					        
+								<a class="rss" target="_blank" href="/atom.xml" title="rss">rss</a>
+					        
+								<a class="zhihu" target="_blank" href="/#" title="zhihu">zhihu</a>
+					        
+								<a class="mail" target="_blank" href="/“yukaiyuan.2012@gmail.com”" title="mail">mail</a>
+					        
+						</div>
+					</nav>
+				</section>
+				
+				
+				<section class="switch-part switch-part2">
+					<div class="widget tagcloud" id="js-tagcloud">
+						<a href="/tags/JMS/" style="font-size: 10px;">JMS</a><a href="/tags/LBS/" style="font-size: 10px;">LBS</a><a href="/tags/RPC/" style="font-size: 10px;">RPC</a><a href="/tags/Redis/" style="font-size: 10px;">Redis</a><a href="/tags/python/" style="font-size: 10px;">python</a><a href="/tags/中间件/" style="font-size: 10px;">中间件</a><a href="/tags/分布式/" style="font-size: 20px;">分布式</a><a href="/tags/框架/" style="font-size: 10px;">框架</a><a href="/tags/爬虫/" style="font-size: 10px;">爬虫</a><a href="/tags/算法/" style="font-size: 20px;">算法</a>
+					</div>
+				</section>
+				
+				
+				
+
+				
+				
+				<section class="switch-part switch-part3">
+				
+					<div id="js-aboutme">感受真理，感受爱</div>
+				</section>
+				
+			</div>
+		</div>
+	</header>				
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+  	<div class="overlay">
+  		<div class="slider-trigger"></div>
+  		<h1 class="header-author js-mobile-header hide">evtHoriz</h1>
+  	</div>
+	<div class="intrude-less">
+		<header id="header" class="inner">
+			<div class="profilepic">
+				<img lazy-src="https://avatars0.githubusercontent.com/u/2124676?v=3&amp;amp;s=460" class="js-avatar">
+			</div>
+			<hgroup>
+			  <h1 class="header-author">evtHoriz</h1>
+			</hgroup>
+			
+			<p class="header-subtitle">脑洞大开</p>
+			
+			<nav class="header-menu">
+				<ul>
+				
+					<li><a href="/">主页</a></li>
+		        
+					<li><a href="/archives">所有文章</a></li>
+		        
+		        <div class="clearfix"></div>
+				</ul>
+			</nav>
+			<nav class="header-nav">
+				<div class="social">
+					
+						<a class="github" target="_blank" href="https://github.com/evthoriz/" title="github">github</a>
+			        
+						<a class="rss" target="_blank" href="/atom.xml" title="rss">rss</a>
+			        
+						<a class="zhihu" target="_blank" href="/#" title="zhihu">zhihu</a>
+			        
+						<a class="mail" target="_blank" href="/“yukaiyuan.2012@gmail.com”" title="mail">mail</a>
+			        
+				</div>
+			</nav>
+		</header>				
+	</div>
+</nav>
+      <div class="body-wrap"><article id="post-gRPC-tutorial" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2015/07/07/gRPC-tutorial/" class="article-date">
+  	<time datetime="2015-07-06T16:00:00.000Z" itemprop="datePublished">2015-07-07</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      gRPC 入门及源码分析
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/RPC/">RPC</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/框架/">框架</a></li></ul>
+	</div>
+
+        
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="基于_protobuf_的_RPC_框架">基于 protobuf 的 RPC 框架</h2><p>在众多序列化器中，protobuf 的设计在速度、体积以及兼容性的考虑上折中的非常好。跨语言跨平台，简单易用，受众广泛。只是不像 thrift 有配套的 RPC 框架实现。gRPC 即是最近由 google 开源的一套基于 protobuf 的 RPC 框架，当然，它也支持 Json，Thrift，XML 等其他序列化方式。</p>
+<h2 id="RPC_架构">RPC 架构</h2><p><strong>RPC</strong> 的实现思路大同小异，以动态代理为例，定义好接口，用一个代理假装实现了这个接口（真正的实现放在服务端），供客户端调用，代理内部将该方法调用封装成一个网络请求送到服务端。服务端根据参数找到对应的注册好的对象处理，返回给客户端。<br><a id="more"></a></p>
+<p>gRPC 官网提供的概念图如下<br><img src="\img\gRPC_concept.png" alt="gRPC_concept"><br>客户端调用 stub 对象，所谓 stub 对象就是具有声明好的方法的 fake object，让你可以调用方法而已，角色和上面讲到的代理对象一样。在 <strong>gRPC</strong> 里，<strong>stub</strong> 对象将请求用 <strong>protobuf</strong> 方式序列化成字节流，用于线上传输，到 <strong>server</strong> 端后调用真正的实现对象处理。</p>
+<h2 id="gRPC_入门实例">gRPC 入门实例</h2><h3 id="Step1-_定义_proto_文件">Step1. 定义 proto 文件</h3><p>用 <strong>gRPC</strong> 推荐使用 <strong>proto3</strong>，避免出现可能的兼容问题。要编译出 rpc 相关的类需要在<code>protoc</code>的基础上使用 gRPC 的插件：<code>protoc-gen-grpc-java</code>。需要特别注意。</p>
+<figure class="highlight protobuf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">syntax = <span class="string">"proto3"</span>;</span><br><span class="line"><span class="keyword">option</span> java_package = <span class="string">"me.evthoriz.gRPC.proto"</span>;</span><br><span class="line"><span class="keyword">option</span> optimize_for = SPEED;</span><br></pre></td></tr></table></figure>
+<p>由于使用了 <strong>proto3</strong> 的语法，字段默认都是 <strong>required</strong> 。</p>
+<figure class="highlight protobuf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">message</span> <span class="title">Position</span> </span>&#123;</span><br><span class="line">    <span class="built_in">float</span> lat = <span class="number">1</span>;</span><br><span class="line">    <span class="built_in">float</span> lng = <span class="number">2</span>;</span><br><span class="line">    <span class="built_in">int32</span> level = <span class="number">3</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">message</span> <span class="title">Geohash</span> </span>&#123;</span><br><span class="line">    <span class="built_in">string</span> base32Str = <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>定义 RPC 服务需要的 <strong>service</strong> 。</p>
+<figure class="highlight protobuf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">service</span> <span class="title">GeoX</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">rpc</span> calcGeohash (Position) <span class="keyword">returns</span> (Geohash)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Step2-_编译_proto_文件">Step2. 编译 proto 文件</h3><p>目前 gRPC 项目用到的几个关键工具基本都是还在开发当中的最新版。<br>添加依赖项</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">groupId</span>&gt;</span>io.grpc<span class="tag">&lt;/<span class="title">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">artifactId</span>&gt;</span>grpc-all<span class="tag">&lt;/<span class="title">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">version</span>&gt;</span>0.7.1<span class="tag">&lt;/<span class="title">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>方案一，通过 <strong>maven</strong> 配置 <code>protoc</code> 和 <code>protoc-gen-grpc-java</code> 插件。<br>方案二，下载 <strong>protoc</strong>，对于原来就在 <strong>protoc</strong> 的人来说，需要注意替换成 <code>3.0</code> 的版本。同时去官网下载<code>protoc-gen-grpc-java</code>的源码自行在本地编译。然后使用 <strong>protoc</strong> 命令时指定 <code>--plugin</code>编译，不要试图使用 IDE 的 <strong>protobuf</strong> 插件。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">plugins</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">plugin</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">groupId</span>&gt;</span>com.google.protobuf.tools<span class="tag">&lt;/<span class="title">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">artifactId</span>&gt;</span>maven-protoc-plugin<span class="tag">&lt;/<span class="title">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">version</span>&gt;</span>0.4.2<span class="tag">&lt;/<span class="title">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">configuration</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="title">protocArtifact</span>&gt;</span>com.google.protobuf:protoc:3.0.0-alpha-3.1:exe:$&#123;os.detected.classifier&#125;<span class="tag">&lt;/<span class="title">protocArtifact</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="title">pluginId</span>&gt;</span>grpc-java<span class="tag">&lt;/<span class="title">pluginId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="title">pluginArtifact</span>&gt;</span>io.grpc:protoc-gen-grpc-java:0.7.1:exe:$&#123;os.detected.classifier&#125;<span class="tag">&lt;/<span class="title">pluginArtifact</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="title">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">executions</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="title">execution</span>&gt;</span></span><br><span class="line">                 <span class="tag">&lt;<span class="title">goals</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="title">goal</span>&gt;</span>compile<span class="tag">&lt;/<span class="title">goal</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="title">goal</span>&gt;</span>compile-custom<span class="tag">&lt;/<span class="title">goal</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="title">goals</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="title">execution</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="title">executions</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="title">plugin</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">plugins</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>配置好插件后 执行 <code>mvn compile</code> 生成 <code>Geo.java</code> 和 <code>GeoXGrpc.java</code>，前者就是 protobuf 相关的序列化类，后者就是包含了 stub class 的 rpc 服务相关的类了。这两个文件在 <code>target/generated-sources</code>下。</p>
+<h3 id="Step3-_编写_Client_和_Server">Step3. 编写 Client 和 Server</h3><h4 id="客户端">客户端</h4><p>先构建一个 <strong>NettyChannel</strong>，然后实例化一个rpc service 的 <strong>BlockingStub</strong>，拥有所有的方法，通过这个 stub 调用的方法，均会通过 NettyChannel 传输出去。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ChannelImpl channel = NettyChannelBuilder.forAddress(host, port)</span><br><span class="line">                .negotiationType(NegotiationType.PLAINTEXT).build();</span><br><span class="line"></span><br><span class="line">GeoXGrpc.GeoXBlockingStub blockingStub = GeoXGrpc.newBlockingStub(channel);</span><br><span class="line">        </span><br><span class="line">Geo.Position position = Geo.Position.newBuilder().setLat(<span class="number">12.12f</span>).setLng(<span class="number">45.45f</span>).setLevel(<span class="number">4</span>).build();</span><br><span class="line">Geo.Geohash geohash = blockingStub.calcGeohash(position);</span><br><span class="line">System.out.println(<span class="string">"Geohash: "</span> + geohash.getBase32Str());</span><br></pre></td></tr></table></figure>
+<h4 id="服务端">服务端</h4><p>定义真正的处理类 <strong>service</strong> 实现接口，方法参数里会多一个 <strong>responseObserver</strong> 用来处理返回和关闭通道，实际是就是一个 <strong>listener</strong>。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">GeoXService</span> <span class="keyword">implements</span> <span class="title">GeoXGrpc</span>.<span class="title">GeoX</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="annotation">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">calcGeohash</span><span class="params">(Geo.Position request, StreamObserver&lt;Geo.Geohash&gt; responseObserver)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">float</span> lat = request.getLat();</span><br><span class="line">        <span class="keyword">float</span> lng = request.getLng();</span><br><span class="line">        <span class="keyword">int</span> level = request.getLevel();</span><br><span class="line">        Geo.Geohash geo = Geo.Geohash.newBuilder().setBase32Str(<span class="string">"wf3gfd3"</span>).build();</span><br><span class="line"></span><br><span class="line">        responseObserver.onValue(geo);</span><br><span class="line">        responseObserver.onCompleted();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在server初始化时将 service 的实例注册进去。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ServerImpl server = NettyServerBuilder</span><br><span class="line">                .forPort(port)</span><br><span class="line">                .addService(GeoXGrpc.bindService(<span class="keyword">new</span> GeoXService()))</span><br><span class="line">                .build().start();</span><br></pre></td></tr></table></figure>
+<h4 id="小结">小结</h4><p>总的来说，<strong>gRPC</strong> 的使用并不难，只要理解 <strong>service</strong>，<strong>stub</strong>，<strong>channel</strong>，<strong>observer</strong> 即可。安装过程可能会遇到些坑，因为目前依赖的包很多处于 <strong>alpha</strong> 或者 <strong>beta</strong> 版本，需要自行编译安装的情况比较多。等将来稳定版本出来后，环境配置应该会方便许多。</p>
+<h2 id="gRPC_源码分析">gRPC 源码分析</h2><h3 id="从插件生成的代码开始">从插件生成的代码开始</h3><p><img src="\img\Grpc_gen_class.png" alt="gRPC_gen_class"></p>
+<p>可以看见 <strong>GeoXGrpc</strong> 内部一共有3个 stub 类，3个 client 接口，3个静态方法。stub 类各自实现对应的 client 接口，提供对应的静态方法给调用者生成并获取实例。另外一个静态方法 <strong>bindService</strong> 是服务端注册 service 实例用的。</p>
+<table>
+<thead>
+<tr>
+<th>stub类名</th>
+<th>client接口名</th>
+<th>接口方法定义</th>
+<th>静态方法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GeoXStub</td>
+<td>GeoX</td>
+<td>calcGeohash(Position,StreamObserver<geohash>):void</geohash></td>
+<td>newStub(Channel)</td>
+</tr>
+<tr>
+<td>GeoXBlockingStub</td>
+<td>GeoXBlockingClient</td>
+<td>calcGeohash(Position):Geohash</td>
+<td>newBlockingStub(Channel)</td>
+</tr>
+<tr>
+<td>GeoXFutureStub</td>
+<td>GeoXFutureClient</td>
+<td>calcGeohash(Position):ListenableFuture<geohash></geohash></td>
+<td>newFutureStub(Channel)</td>
+</tr>
+</tbody>
+</table>
+<p>其中BlockingStub这个无需赘言，就是最简单的一个同步阻塞调用。所以先看看第一个和第三个有何不同。第一个是异步接口，调用方法时需要传进去一个<strong>StreamObserver</strong>, 这个对象的作用在传输层代码上增加一个listener，当特定的事件如收到消息等触发时，会调用里面的处理逻辑。看看代码，</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="annotation">@java</span>.lang.<span class="function">Override</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">calcGeohash</span><span class="params">(Geo.Position request, io.grpc.stub.StreamObserver&lt;Geo.Geohash&gt; responseObserver)</span> </span>&#123;</span><br><span class="line">    asyncUnaryCall(</span><br><span class="line">        channel.newCall(config.calcGeohash), request, responseObserver);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>asyncUnaryCall 是来自类 <strong>Calls</strong> 的静态方法。它接受参数里会多一个从 channel 里新建出来的 <strong>call</strong> 对象。Calls 这个类的作用是将针对call的同步异步阻塞非阻塞的几种调用方式封装起来。毕竟可以放在jar文件里的都尽量抽象出来，使插件编译生成的代码尽量精简。<br>可以看到Calls里的方法除了构造方法外其余全是静态方法。</p>
+<p><img src="\img\Calls.png" alt="Calls"></p>
+<p>看调用栈，可以发现，<strong>Observer</strong> 通过一个 <strong>Adaptor</strong> 被包装成了一个<strong>Listener</strong> 送入 <strong>call</strong> 对象中。这个 Listener 其实就是将 call对象 和 observer对象封装在一起，在 Listener 触发时，调用正确的方法组合。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;ReqT, RespT&gt; <span class="function"><span class="keyword">void</span> <span class="title">asyncUnaryCall</span><span class="params">(Call&lt;ReqT, RespT&gt; call, ReqT param, StreamObserver&lt;RespT&gt; observer)</span> </span>&#123;</span><br><span class="line">    asyncServerStreamingCall(call, param, observer);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;ReqT, RespT&gt; <span class="function"><span class="keyword">void</span> <span class="title">asyncServerStreamingCall</span><span class="params">(Call&lt;ReqT, RespT&gt; call, ReqT param, StreamObserver&lt;RespT&gt; responseObserver)</span> </span>&#123;</span><br><span class="line">    asyncServerStreamingCall(call, param, (Listener)(<span class="keyword">new</span> Calls.StreamObserverToCallListenerAdapter(call, responseObserver)));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> &lt;ReqT, RespT&gt; <span class="function"><span class="keyword">void</span> <span class="title">asyncServerStreamingCall</span><span class="params">(Call&lt;ReqT, RespT&gt; call, ReqT param, Listener&lt;RespT&gt; responseListener)</span> </span>&#123;</span><br><span class="line">    call.start(responseListener, <span class="keyword">new</span> Headers());</span><br><span class="line">    call.request(<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        call.sendPayload(param);</span><br><span class="line">        call.halfClose();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable var4) &#123;</span><br><span class="line">        call.cancel();</span><br><span class="line">        <span class="keyword">throw</span> Throwables.propagate(var4);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>看看这几个 Listener 继承的抽象类，这几个方法都是在 call 里面被适时调用的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Listener</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Listener</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 收到响应的 headers 时调用。</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">onHeaders</span><span class="params">(Headers var1)</span></span>;</span><br><span class="line">    <span class="comment">// 收到响应的 payload 时调用。</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">onPayload</span><span class="params">(T var1)</span></span>;</span><br><span class="line">    <span class="comment">// 在调用结束时调用。</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">onClose</span><span class="params">(Status var1, Trailers var2)</span></span>;</span><br><span class="line">    <span class="comment">// 这个可以无视。</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onReady</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>先到此为止，再看看FutureStub的调用栈</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="annotation">@java</span>.lang.<span class="function">Override</span><br><span class="line"><span class="keyword">public</span> ListenableFuture&lt;Geohash&gt; <span class="title">calcGeohash</span><span class="params">(Geo.Position request)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> unaryFutureCall(</span><br><span class="line">        channel.newCall(config.calcGeohash), request);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>能发现除了包装的 <strong>Lisener</strong> 不同，它调用的也是 asyncServerStreamingCall 这个方法。这个 Listener 更简单，作用就是触发 onClose 方法时将值 set 到 future 中。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;ReqT, RespT&gt; <span class="function">ListenableFuture&lt;RespT&gt; <span class="title">unaryFutureCall</span><span class="params">(Call&lt;ReqT, RespT&gt; call, ReqT param)</span> </span>&#123;</span><br><span class="line">    Calls.GrpcFuture responseFuture = <span class="keyword">new</span> Calls.GrpcFuture(call);</span><br><span class="line">    asyncServerStreamingCall(call, param, (Listener)(<span class="keyword">new</span> Calls.UnaryStreamToFuture(responseFuture)));</span><br><span class="line">    <span class="keyword">return</span> responseFuture;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最后再回头看看BlockingStub的调用栈</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="annotation">@java</span>.lang.Override</span><br><span class="line"><span class="keyword">public</span> Geo.<span class="function">Geohash <span class="title">calcGeohash</span><span class="params">(Geo.Position request)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> blockingUnaryCall(</span><br><span class="line">      channel.newCall(config.calcGeohash), request);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>发现它实际上只是在 unaryFutureCall 外面包了一层，阻塞等待future的返回值再返回而已。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;ReqT, RespT&gt; <span class="function">RespT <span class="title">blockingUnaryCall</span><span class="params">(Call&lt;ReqT, RespT&gt; call, ReqT param)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> getUnchecked(unaryFutureCall(call, param));</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable var3) &#123;</span><br><span class="line">        call.cancel();</span><br><span class="line">        <span class="keyword">throw</span> Throwables.propagate(var3);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> &lt;V&gt; <span class="function">V <span class="title">getUnchecked</span><span class="params">(Future&lt;V&gt; future)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> future.get();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (InterruptedException var2) &#123;</span><br><span class="line">        Thread.currentThread().interrupt();</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(var2);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (ExecutionException var3) &#123;</span><br><span class="line">        <span class="keyword">if</span>(var3.getCause() == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> UncheckedExecutionException(var3);</span><br><span class="line">        &#125; <span class="function"><span class="keyword">else</span> <span class="title">if</span><span class="params">(var3.getCause()</span> <span class="keyword">instanceof</span> Error) </span>&#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> ExecutionError((Error)var3.getCause());</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> UncheckedExecutionException(var3.getCause());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="小结-1">小结</h4><p>这样这三个Stub的使用场景就非常好区分了。带 Blocking 的适用于<strong>同步阻塞</strong>的，带 Future 的是<strong>同步非阻塞</strong>的，都不带的是<strong>异步</strong>的。</p>
+<h3 id="源码框架分析">源码框架分析</h3><p>上面是从使用角度来分析源码，现在从全局角度来看 gRPC 的代码。主要分为两个包grpc-stub-0.7.1.jar 和 grpc-core-0.7.1.jar。分为三个模块，Stub、Channel、Transport。<br>首先是stub包，</p>
+<p><img src="\img\grpc-stub.png" alt="grpc-stub"><br>重点关注三个类一个接口</p>
+<ul>
+<li>Calls</li>
+<li>Method</li>
+<li>ServerCalls</li>
+<li>StreamObserver</li>
+</ul>
+<p>Calls 类：已经提过，提供静态方法封装对Call的各式调用。<br>StreamObserver 接口：已经提过，作为 Listener 在 Call 的各个阶段调用。<br>Method 类：</p>
+<blockquote>
+<p>A description of a method exposed by a service. Typically instances are created via code generation.</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;RequestT, ResponseT&gt; Method&lt;RequestT, ResponseT&gt; create(MethodType type, String name, Marshaller&lt;RequestT&gt; requestMarshaller, Marshaller&lt;ResponseT&gt; responseMarshaller) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Method&lt;RequestT, ResponseT&gt;(type, name, requestMarshaller, responseMarshaller);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>看到调用处是在插件生成的代码中，作用是封装 rpc 方法的相关信息，包括 type，name 和 parser。在服务端注册service时，bindService 用到。下面代码中的 createMethodDefination 的 第一个参数即方法信息，第二个参数是一个Handler，invoke 注册的 service 对象的对应方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">GeoXGrpc</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> io.grpc.stub.Method&lt;Geo.Position, Geo.Geohash&gt; METHOD_CALC_GEOHASH = </span><br><span class="line">io.grpc.stub.Method.create(io.grpc.MethodType.UNARY, <span class="string">"calcGeohash"</span>,</span><br><span class="line">      io.grpc.protobuf.ProtoUtils.marshaller(Geo.Position.PARSER),</span><br><span class="line">      io.grpc.protobuf.ProtoUtils.marshaller(Geo.Geohash.PARSER));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> io.grpc.<span class="function">ServerServiceDefinition <span class="title">bindService</span><span class="params">(<span class="keyword">final</span> GeoX serviceImpl)</span> </span>&#123;</span><br><span class="line"><span class="keyword">return</span> io.grpc.ServerServiceDefinition.builder(<span class="string">"GeoX"</span>)</span><br><span class="line">  .addMethod(createMethodDefinition(</span><br><span class="line">      METHOD_CALC_GEOHASH,</span><br><span class="line">      asyncUnaryRequestCall(</span><br><span class="line">        <span class="keyword">new</span> io.grpc.stub.ServerCalls.UnaryRequestMethod&lt;Geo.Position,Geo.Geohash&gt;() &#123;</span><br><span class="line">          <span class="annotation">@java</span>.lang.<span class="function">Override</span><br><span class="line">          <span class="keyword">public</span> <span class="keyword">void</span> <span class="title">invoke</span><span class="params">(</span><br><span class="line">              Geo.Position request,</span><br><span class="line">              io.grpc.stub.StreamObserver&lt;Geo.Geohash&gt; responseObserver)</span> </span>&#123;</span><br><span class="line">            serviceImpl.calcGeohash(request, responseObserver);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;))).build();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>ServerCalls 类：</p>
+<blockquote>
+<p>Utility functions for adapting {@link ServerCallHandler}s to application service implementation, meant to be used by the generated code.</p>
+</blockquote>
+<p>也是一个工具类，相当于 server 端的 Calls，如同客户端处 Calls 封装对 Call 的使用，ServerCalls 封装了对 ServerCall 的使用，不同的是在客户端 call 是从channel 里自建的，在服务端的 severCall 则是需要被被动处理的。上面提到的 createMethodDefination 也是被封装在它里面的。asyncUnaryRequestCall 也在上面出现过了，以 UnaryRequestMethod 接口为参数，返回一个 Handler，而实现UnaryRequestMethod 的匿名类则封装真正对 service 对象的调用。</p>
+<p><img src="\img\server-Calls.png" alt="server-Calls"></p>
+<p>有个东西一直没讲，这边提一下就是与 Unary 相对的 Streaming。在定义 RPC 方法时除了</p>
+<figure class="highlight protobuf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">service</span> <span class="title">GeoX</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">rpc</span> calcGeohash (Position) <span class="keyword">returns</span> (Geohash)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>还可以有如下三种定义方式</p>
+<figure class="highlight protobuf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">service</span> <span class="title">GeoX</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">rpc</span> calcGeohash (stream Position) <span class="keyword">returns</span> (Geohash)</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">service</span> <span class="title">GeoX</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">rpc</span> calcGeohash (Position) <span class="keyword">returns</span> (stream Geohash)</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">service</span> <span class="title">GeoX</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">rpc</span> calcGeohash (stream Position) <span class="keyword">returns</span> (stream Geohash)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>加入了 stream 的参数可以发送多个，加了 stream 的返回值可以接收多个。和用 list 的区别在于 stream 类型可以边接收边处理，边处理边返回。故看代码除了处理Unary的一套方法外，往往都有一套对streaming的处理方法。</p>
+<h4 id="小结-2">小结</h4><p>grpc-stub 这个包基本上就是所有和 stub相 关的处理了。channel 和 transport 放在 grpc-core 中，下次再看。</p>
+<h2 id="Ref-">Ref.</h2><p><a href="http://www.grpc.io/docs/tutorials/basic/java.html" target="_blank" rel="external">gRPC Basics - Java</a><br><a href="https://developers.google.com/protocol-buffers/docs/proto3" target="_blank" rel="external">proto3</a></p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2015/07/02/Geohash 算法的边界问题/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">Geohash 算法的8个矩形</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+
+
+
+
+</div>
+      <footer id="footer">
+  <div class="outer">
+    <div id="footer-info">
+    	<div class="footer-left">
+    		&copy; 2015 evtHoriz
+    	</div>
+      	<div class="footer-right">
+      		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
+      	</div>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+
+
+<script>
+	var yiliaConfig = {
+		fancybox: true,
+		mathjax: true,
+		animate: true,
+		isHome: false,
+		isPost: true,
+		isArchive: false,
+		isTag: false,
+		isCategory: false,
+		open_in_new: false
+	}
+</script>
+<script src="http://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js" type="text/javascript"></script>
+<script src="/js/main.js" type="text/javascript"></script>
+
+
+
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';                 
+    }       
+});
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  </div>
+</body>
+</html>

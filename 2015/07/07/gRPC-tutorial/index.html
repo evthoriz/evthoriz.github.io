@@ -13,7 +13,7 @@ RPC 架构RPC 的实现思路大">
 <meta property="og:site_name" content="yu’s blog">
 <meta property="og:description" content="基于 protobuf 的 RPC 框架在众多序列化器中，protobuf 的设计在速度、体积以及兼容性的考虑上折中的非常好。跨语言跨平台，简单易用，受众广泛。只是不像 thrift 有配套的 RPC 框架实现。gRPC 即是最近由 google 开源的一套基于 protobuf 的 RPC 框架，当然，它也支持 Json，Thrift，XML 等其他序列化方式。
 RPC 架构RPC 的实现思路大">
-<meta property="og:image" content="\img\gRPC_concept.png">
+<meta property="og:image" content="\img\grpc_concept.png">
 <meta property="og:image" content="\img\Grpc_gen_class.png">
 <meta property="og:image" content="\img\Calls.png">
 <meta property="og:image" content="\img\grpc-stub.png">
@@ -216,7 +216,7 @@ RPC 架构RPC 的实现思路大">
       
         <h2 id="基于_protobuf_的_RPC_框架">基于 protobuf 的 RPC 框架</h2><p>在众多序列化器中，protobuf 的设计在速度、体积以及兼容性的考虑上折中的非常好。跨语言跨平台，简单易用，受众广泛。只是不像 thrift 有配套的 RPC 框架实现。gRPC 即是最近由 google 开源的一套基于 protobuf 的 RPC 框架，当然，它也支持 Json，Thrift，XML 等其他序列化方式。</p>
 <h2 id="RPC_架构">RPC 架构</h2><p><strong>RPC</strong> 的实现思路大同小异，以动态代理为例，定义好接口，用一个代理假装实现了这个接口（真正的实现放在服务端），供客户端调用，代理内部将该方法调用封装成一个网络请求送到服务端。服务端根据参数找到对应的注册好的对象处理，返回给客户端。<br><a id="more"></a></p>
-<p>gRPC 官网提供的概念图如下<br><img src="\img\gRPC_concept.png" alt="gRPC_concept"><br>客户端调用 stub 对象，所谓 stub 对象就是具有声明好的方法的 fake object，让你可以调用方法而已，角色和上面讲到的代理对象一样。在 <strong>gRPC</strong> 里，<strong>stub</strong> 对象将请求用 <strong>protobuf</strong> 方式序列化成字节流，用于线上传输，到 <strong>server</strong> 端后调用真正的实现对象处理。</p>
+<p>gRPC 官网提供的概念图如下<br><img src="\img\grpc_concept.png" alt="gRPC_concept"><br>客户端调用 stub 对象，所谓 stub 对象就是具有声明好的方法的 fake object，让你可以调用方法而已，角色和上面讲到的代理对象一样。在 <strong>gRPC</strong> 里，<strong>stub</strong> 对象将请求用 <strong>protobuf</strong> 方式序列化成字节流，用于线上传输，到 <strong>server</strong> 端后调用真正的实现对象处理。</p>
 <h2 id="gRPC_入门实例">gRPC 入门实例</h2><h3 id="Step1-_定义_proto_文件">Step1. 定义 proto 文件</h3><p>用 <strong>gRPC</strong> 推荐使用 <strong>proto3</strong>，避免出现可能的兼容问题。要编译出 rpc 相关的类需要在<code>protoc</code>的基础上使用 gRPC 的插件：<code>protoc-gen-grpc-java</code>。需要特别注意。</p>
 <figure class="highlight protobuf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">syntax = <span class="string">"proto3"</span>;</span><br><span class="line"><span class="keyword">option</span> java_package = <span class="string">"me.evthoriz.gRPC.proto"</span>;</span><br><span class="line"><span class="keyword">option</span> optimize_for = SPEED;</span><br></pre></td></tr></table></figure>
 <p>由于使用了 <strong>proto3</strong> 的语法，字段默认都是 <strong>required</strong> 。</p>

@@ -5,26 +5,26 @@
   
   <title>控制反转和依赖注入［译］ | yu’s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="这是一篇讲依赖注入概念的入门文章，非常浅显，翻译是为了看看语文是否退化 :)
+  <meta name="description" content="这是一篇讲依赖注入概念的入门文章，非常浅显，翻译是为了看看语文是否退化 :)翻完之后发现原来已经有人翻过了……
 
 原文作者：Martin Fowler
-在 Java 社区中有不少的轻量级容器，可以将来自不同项目的组件结合起来构建一个完整的应用。这些容器的根本是基于一种通用的模式，一个被通俗的称为控制反转（IOC）的基本概念。我会在这篇文章中用依赖注入（DI）这个更专门的名词来深层阐述这个模式是如何运作的，并且会和 Service">
+在 Java 社区中有不少的轻量级容器，可以将来自不同项目的组件结合起来构建一个完整的应用。这些容器的根本是基于一种通用的模式，一个被通俗的称为控制反转（IOC）的基本概念。我会在这篇文章中用依赖注入（DI）这个更专门的名词来深层阐述这个模式是如何">
 <meta property="og:type" content="article">
 <meta property="og:title" content="控制反转和依赖注入［译］">
 <meta property="og:url" content="http://evthoriz.github.io/2015/07/09/IOC-and-DI/index.html">
 <meta property="og:site_name" content="yu’s blog">
-<meta property="og:description" content="这是一篇讲依赖注入概念的入门文章，非常浅显，翻译是为了看看语文是否退化 :)
+<meta property="og:description" content="这是一篇讲依赖注入概念的入门文章，非常浅显，翻译是为了看看语文是否退化 :)翻完之后发现原来已经有人翻过了……
 
 原文作者：Martin Fowler
-在 Java 社区中有不少的轻量级容器，可以将来自不同项目的组件结合起来构建一个完整的应用。这些容器的根本是基于一种通用的模式，一个被通俗的称为控制反转（IOC）的基本概念。我会在这篇文章中用依赖注入（DI）这个更专门的名词来深层阐述这个模式是如何运作的，并且会和 Service">
+在 Java 社区中有不少的轻量级容器，可以将来自不同项目的组件结合起来构建一个完整的应用。这些容器的根本是基于一种通用的模式，一个被通俗的称为控制反转（IOC）的基本概念。我会在这篇文章中用依赖注入（DI）这个更专门的名词来深层阐述这个模式是如何">
 <meta property="og:image" content="\img\injection-1.gif">
 <meta property="og:image" content="\img\injection-2.gif">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="控制反转和依赖注入［译］">
-<meta name="twitter:description" content="这是一篇讲依赖注入概念的入门文章，非常浅显，翻译是为了看看语文是否退化 :)
+<meta name="twitter:description" content="这是一篇讲依赖注入概念的入门文章，非常浅显，翻译是为了看看语文是否退化 :)翻完之后发现原来已经有人翻过了……
 
 原文作者：Martin Fowler
-在 Java 社区中有不少的轻量级容器，可以将来自不同项目的组件结合起来构建一个完整的应用。这些容器的根本是基于一种通用的模式，一个被通俗的称为控制反转（IOC）的基本概念。我会在这篇文章中用依赖注入（DI）这个更专门的名词来深层阐述这个模式是如何运作的，并且会和 Service">
+在 Java 社区中有不少的轻量级容器，可以将来自不同项目的组件结合起来构建一个完整的应用。这些容器的根本是基于一种通用的模式，一个被通俗的称为控制反转（IOC）的基本概念。我会在这篇文章中用依赖注入（DI）这个更专门的名词来深层阐述这个模式是如何">
   
     <link rel="alternative" href="/atom.xml" title="yu’s blog" type="application/atom+xml">
   
@@ -218,7 +218,7 @@
     <div class="article-entry" itemprop="articleBody">
       
         <blockquote>
-<p>这是一篇讲依赖注入概念的入门文章，非常浅显，翻译是为了看看语文是否退化 :)</p>
+<p>这是一篇讲依赖注入概念的入门文章，非常浅显，翻译是为了看看语文是否退化 :)<br>翻完之后发现原来已经有人翻过了……</p>
 </blockquote>
 <p><strong>原文作者</strong>：<em>Martin Fowler</em></p>
 <p>在 Java 社区中有不少的轻量级容器，可以将来自不同项目的组件结合起来构建一个完整的应用。这些容器的根本是基于一种通用的模式，一个被通俗的称为控制反转（IOC）的基本概念。我会在这篇文章中用依赖注入（DI）这个更专门的名词来深层阐述这个模式是如何运作的，并且会和 Service Locator 这种方案做出对比。相比在他们两个之间做选择，将配置与使用分离这个准则更为重要。</p>

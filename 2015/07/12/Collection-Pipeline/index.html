@@ -5,15 +5,22 @@
   
   <title>yu’s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="a brief description">
-<meta property="og:type" content="website">
+  <meta name="description" content="Collection PipelineCollection pipelines 是一种编程范式，通过把一个操作的输出当作下个操作的输入来把计算组织成序列型的操作。（常用的操作是 filter，map，和 reduce。）这种范式在函数式编程中很普通，也存在于支持 lambda 的面向对象语言中。这篇文章将用一些例子来描述这种范式时如何形成 pipeline 的，同时也是给不熟悉这种范式的同学的一个">
+<meta property="og:type" content="article">
 <meta property="og:title" content="yu’s blog">
-<meta property="og:url" content="http://evthoriz.github.io/index.html">
+<meta property="og:url" content="http://evthoriz.github.io/2015/07/12/Collection-Pipeline/index.html">
 <meta property="og:site_name" content="yu’s blog">
-<meta property="og:description" content="a brief description">
+<meta property="og:description" content="Collection PipelineCollection pipelines 是一种编程范式，通过把一个操作的输出当作下个操作的输入来把计算组织成序列型的操作。（常用的操作是 filter，map，和 reduce。）这种范式在函数式编程中很普通，也存在于支持 lambda 的面向对象语言中。这篇文章将用一些例子来描述这种范式时如何形成 pipeline 的，同时也是给不熟悉这种范式的同学的一个">
+<meta property="og:image" content="\img\pipeline-loop-1.png">
+<meta property="og:image" content="\img\pipeline-loop-2.png">
+<meta property="og:image" content="\img\pipeline-loop-3.png">
+<meta property="og:image" content="\img\pipeline-loop-4.png">
+<meta property="og:image" content="\img\pipeline-comprehensions-1.png">
+<meta property="og:image" content="\img\pipeline-comprehensions-2.png">
+<meta property="og:image" content="\img\pipeline-distinct.png">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="yu’s blog">
-<meta name="twitter:description" content="a brief description">
+<meta name="twitter:description" content="Collection PipelineCollection pipelines 是一种编程范式，通过把一个操作的输出当作下个操作的输入来把计算组织成序列型的操作。（常用的操作是 filter，map，和 reduce。）这种范式在函数式编程中很普通，也存在于支持 lambda 的面向对象语言中。这篇文章将用一些例子来描述这种范式时如何形成 pipeline 的，同时也是给不熟悉这种范式的同学的一个">
   
     <link rel="alternative" href="/atom.xml" title="yu’s blog" type="application/atom+xml">
   
@@ -169,9 +176,7 @@
 		</header>				
 	</div>
 </nav>
-      <div class="body-wrap">
-  
-    <article id="post-Collection-Pipeline" class="article article-type-post" itemscope itemprop="blogPost">
+      <div class="body-wrap"><article id="post-Collection-Pipeline" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
       <a href="/2015/07/12/Collection-Pipeline/" class="article-date">
@@ -403,16 +408,19 @@
       
     </div>
     
-    <div class="article-info article-info-index">
-      
-      
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-    
   </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2015/07/09/IOC-and-DI/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">控制反转和依赖注入［译］</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
   
 </article>
 
@@ -421,443 +429,6 @@
 
 
 
-
-  
-    <article id="post-IOC-and-DI" class="article article-type-post" itemscope itemprop="blogPost">
-  
-    <div class="article-meta">
-      <a href="/2015/07/09/IOC-and-DI/" class="article-date">
-  	<time datetime="2015-07-08T16:00:00.000Z" itemprop="datePublished">2015-07-09</time>
-</a>
-    </div>
-  
-  <div class="article-inner">
-    
-      <input type="hidden" class="isFancy" />
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/07/09/IOC-and-DI/">控制反转和依赖注入［译］</a>
-    </h1>
-  
-
-      </header>
-      
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>这是一篇讲依赖注入概念的入门文章，非常浅显，翻译是为了看看语文是否退化 :)<br>翻完之后发现原来已经有人翻过了……</p>
-</blockquote>
-<p><strong>原文作者</strong>：<em>Martin Fowler</em></p>
-<p>在 Java 社区中有不少的轻量级容器，可以将来自不同项目的组件结合起来构建一个完整的应用。这些容器的根本是基于一种通用的模式，一个被通俗的称为控制反转（IOC）的基本概念。我会在这篇文章中用依赖注入（DI）这个更专门的名词来深层阐述这个模式是如何运作的，并且会和 Service Locator 这种方案做出对比。相比在他们两个之间做选择，将配置与使用分离这个准则更为重要。</p>
-      
-    </div>
-    
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/框架/">框架</a></li></ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a  href="/2015/07/09/IOC-and-DI/#more">more >></a>
-        </p>
-      
-      <div class="clearfix"></div>
-    </div>
-    
-  </div>
-  
-</article>
-
-
-
-
-
-
-
-  
-    <article id="post-gRPC-tutorial" class="article article-type-post" itemscope itemprop="blogPost">
-  
-    <div class="article-meta">
-      <a href="/2015/07/07/gRPC-tutorial/" class="article-date">
-  	<time datetime="2015-07-06T16:00:00.000Z" itemprop="datePublished">2015-07-07</time>
-</a>
-    </div>
-  
-  <div class="article-inner">
-    
-      <input type="hidden" class="isFancy" />
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/07/07/gRPC-tutorial/">gRPC 入门及源码分析</a>
-    </h1>
-  
-
-      </header>
-      
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="基于_protobuf_的_RPC_框架">基于 protobuf 的 RPC 框架</h2><p>在众多序列化器中，protobuf 的设计在速度、体积以及兼容性的考虑上折中的非常好。跨语言跨平台，简单易用，受众广泛。只是不像 thrift 有配套的 RPC 框架实现。gRPC 即是最近由 google 开源的一套基于 protobuf 的 RPC 框架，当然，它也支持 Json，Thrift，XML 等其他序列化方式。</p>
-<h2 id="RPC_架构">RPC 架构</h2><p><strong>RPC</strong> 的实现思路大同小异，以动态代理为例，定义好接口，用一个代理假装实现了这个接口（真正的实现放在服务端），供客户端调用，代理内部将该方法调用封装成一个网络请求送到服务端。服务端根据参数找到对应的注册好的对象处理，返回给客户端。<br>
-      
-    </div>
-    
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/RPC/">RPC</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/框架/">框架</a></li></ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a  href="/2015/07/07/gRPC-tutorial/#more">more >></a>
-        </p>
-      
-      <div class="clearfix"></div>
-    </div>
-    
-  </div>
-  
-</article>
-
-
-
-
-
-
-
-  
-    <article id="post-Geohash 算法的边界问题" class="article article-type-post" itemscope itemprop="blogPost">
-  
-    <div class="article-meta">
-      <a href="/2015/07/02/Geohash 算法的边界问题/" class="article-date">
-  	<time datetime="2015-07-01T16:00:00.000Z" itemprop="datePublished">2015-07-02</time>
-</a>
-    </div>
-  
-  <div class="article-inner">
-    
-      <input type="hidden" class="isFancy" />
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/07/02/Geohash 算法的边界问题/">Geohash 算法的8个矩形</a>
-    </h1>
-  
-
-      </header>
-      
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="基本原理及留存问题">基本原理及留存问题</h2><p>按照 geohash 的算法原理，平面空间最后是被划分为规整的矩形，每个矩形内部会拥有同一个 geohash 值。使用时只需要计算出当前点的 geohash 值，就可以从数据库中按照 geohash 这个索引获取所有这个矩形内的点的数据。这些点即被认为是当前点的附近点。然后按照距离公式计算两点距离，即可从中找到离目标最近的点。</p>
-<p>问题在于，在当前点位于矩形的边界位置或者靠近边界位置时，与其最近的点可能处于边界另一侧的矩形内，这种情形下就无法匹配到最近的点。针对这种情况最直观的想法是把当前点所在矩形的周围八个矩形也包括进来，这样能保证输入的点集一定包括潜在的最近点。</p>
-      
-    </div>
-    
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/LBS/">LBS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/算法/">算法</a></li></ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a  href="/2015/07/02/Geohash 算法的边界问题/#more">more >></a>
-        </p>
-      
-      <div class="clearfix"></div>
-    </div>
-    
-  </div>
-  
-</article>
-
-
-
-
-
-
-
-  
-    <article id="post-About-Redis-Cluster" class="article article-type-post" itemscope itemprop="blogPost">
-  
-    <div class="article-meta">
-      <a href="/2015/06/28/About-Redis-Cluster/" class="article-date">
-  	<time datetime="2015-06-27T16:00:00.000Z" itemprop="datePublished">2015-06-28</time>
-</a>
-    </div>
-  
-  <div class="article-inner">
-    
-      <input type="hidden" class="isFancy" />
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/06/28/About-Redis-Cluster/">谈谈 Redis3.0 的集群处理</a>
-    </h1>
-  
-
-      </header>
-      
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="2-x时代">2.x时代</h2><p>对 Redis 的集群支持的呼声一直很高，随着前不久 Redis3.0 正式发布，网上关于 Redis Cluster 的讨论如雨后春笋，大有一统缓存界的势头。在 Redis2.0 时代，实际使用中我们也会需要用到多个 Redis 实例，分布在多台机器上，那个时候的替代方案是在客户端这边缓存所有 Redis 实例的连接（通过配置文件或者zookeeper这种中心服务管理所有 Redis配置），自己对 key 做 hash，确定每个 key 的分布，找到对应的 Redis 实例，再做操作。为了 key 的均匀分布和集群的扩展性、稳定性，一般会采用一致性哈希算法。每次扩容新增实例的时候需要更新配置信息，客户端重新加载配置信息并更新本地缓存的连接。</p>
-      
-    </div>
-    
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Redis/">Redis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式/">分布式</a></li></ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a  href="/2015/06/28/About-Redis-Cluster/#more">more >></a>
-        </p>
-      
-      <div class="clearfix"></div>
-    </div>
-    
-  </div>
-  
-</article>
-
-
-
-
-
-
-
-  
-    <article id="post- HornetQ-and-JMS " class="article article-type-post" itemscope itemprop="blogPost">
-  
-    <div class="article-meta">
-      <a href="/2015/06/25/ HornetQ-and-JMS /" class="article-date">
-  	<time datetime="2015-06-24T16:00:00.000Z" itemprop="datePublished">2015-06-25</time>
-</a>
-    </div>
-  
-  <div class="article-inner">
-    
-      <input type="hidden" class="isFancy" />
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/06/25/ HornetQ-and-JMS /">从 HornetQ 讲 JMS</a>
-    </h1>
-  
-
-      </header>
-      
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="HornetQ_简介">HornetQ 简介</h2><p>HornetQ 是众多高性能消息中间件之一，用 Java 实现，由 JBOSS 开源，支持</p>
-<ul>
-<li>message persistent</li>
-<li>standalone &amp; embedded</li>
-<li>JMS 1.1 &amp; 2.0 API</li>
-</ul>
-<h2 id="JMS_简介">JMS 简介</h2><p>JMS 全称 Java Message Service，是一种消息队列服务的规范。所有实现了JMS 的产品（消息中间件）都应该能够通过一个符合 JMS 规范的客户端访问。HornetQ 提供了一套 core api 用于对自己 service 的原生访问，同时也按照 JMS 规范在核心 API 上封装了一层 JMS Facade。<br>使用 JMS 可以达到的目的 </p>
-<ul>
-<li>系统解耦</li>
-<li>异步</li>
-</ul>
-<p>JMS 支持的域模型    </p>
-<ul>
-<li>Queue</li>
-<li>Pub/Sub</li>
-</ul>
-      
-    </div>
-    
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JMS/">JMS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/中间件/">中间件</a></li></ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a  href="/2015/06/25/ HornetQ-and-JMS /#more">more >></a>
-        </p>
-      
-      <div class="clearfix"></div>
-    </div>
-    
-  </div>
-  
-</article>
-
-
-
-
-
-
-
-  
-    <article id="post-write-a-cawler" class="article article-type-post" itemscope itemprop="blogPost">
-  
-    <div class="article-meta">
-      <a href="/2015/03/15/write-a-cawler/" class="article-date">
-  	<time datetime="2015-03-14T16:00:00.000Z" itemprop="datePublished">2015-03-15</time>
-</a>
-    </div>
-  
-  <div class="article-inner">
-    
-      <input type="hidden" class="isFancy" />
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/03/15/write-a-cawler/">写一个简单的爬虫</a>
-    </h1>
-  
-
-      </header>
-      
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>一个爬虫的基本功能包括        </p>
-<ul>
-<li>获取网页   </li>
-<li>分析内容   </li>
-<li>处理结果   </li>
-</ul>
-<p>以 python 为例，写一个下载图片的爬虫。   </p>
-<h2 id="下载网页">下载网页</h2><p>第一步获取网页内容，需要像目标服务器发送 HTTP GET 请求。有部分站点会屏蔽来自非 Web 浏览器的访问，因此构造 HTTP 请求时尽量接近于真实的浏览器请求，以减少被禁止的可能性。<br>通过浏览器的网络工具可以看到一个完整的 HTTP 请求报文，<br><img src="\img\jandan_request.png" alt="request"><br>
-      
-    </div>
-    
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/python/">python</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/爬虫/">爬虫</a></li></ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a  href="/2015/03/15/write-a-cawler/#more">more >></a>
-        </p>
-      
-      <div class="clearfix"></div>
-    </div>
-    
-  </div>
-  
-</article>
-
-
-
-
-
-
-
-  
-    <article id="post-consistent-hashing" class="article article-type-post" itemscope itemprop="blogPost">
-  
-    <div class="article-meta">
-      <a href="/2014/11/15/consistent-hashing/" class="article-date">
-  	<time datetime="2014-11-15T14:20:19.000Z" itemprop="datePublished">2014-11-15</time>
-</a>
-    </div>
-  
-  <div class="article-inner">
-    
-      <input type="hidden" class="isFancy" />
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2014/11/15/consistent-hashing/">一致性哈希</a>
-    </h1>
-  
-
-      </header>
-      
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="一致性的含义">一致性的含义</h2><p>在分布式的场景下，为了将数据分发到不同节点上，最简单的算法是通过对数据哈希取余的方式。假设有n个节点，公式为：  $hash(key) \bmod n$<br>这种方式有一个明显的弊端，当节点数变换（这在集群里经常发生），所有数据就得再次计算，重新分布，例如增加一个节点：  $hash(key) \bmod (n+1)$  很明显这个key将会跑到其他节点上去了。<br>对于数据量非常大的情形，一次迁移可能会耗时很久，给服务稳定性带来很大压力，这是不可接受的。而一致性哈希 (consistent hashing) 解决了这个问题，保证在节点数变化时，只有必要的数据发生迁移，大部分的数据的分布和原来一致。这也就是其名字里 <strong>consistent</strong> 一致性的含义。<br>
-      
-    </div>
-    
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式/">分布式</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/算法/">算法</a></li></ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a  href="/2014/11/15/consistent-hashing/#more">more >></a>
-        </p>
-      
-      <div class="clearfix"></div>
-    </div>
-    
-  </div>
-  
-</article>
-
-
-
-
-
-
-
-  
-  
 </div>
       <footer id="footer">
   <div class="outer">
@@ -881,8 +452,8 @@
 		fancybox: true,
 		mathjax: true,
 		animate: true,
-		isHome: true,
-		isPost: false,
+		isHome: false,
+		isPost: true,
 		isArchive: false,
 		isTag: false,
 		isCategory: false,

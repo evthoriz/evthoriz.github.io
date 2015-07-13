@@ -107,7 +107,7 @@
 				
 				<section class="switch-part switch-part2">
 					<div class="widget tagcloud" id="js-tagcloud">
-						<a href="/tags/JMS/" style="font-size: 10px;">JMS</a><a href="/tags/LBS/" style="font-size: 10px;">LBS</a><a href="/tags/RPC/" style="font-size: 10px;">RPC</a><a href="/tags/Redis/" style="font-size: 10px;">Redis</a><a href="/tags/python/" style="font-size: 10px;">python</a><a href="/tags/中间件/" style="font-size: 10px;">中间件</a><a href="/tags/函数式编程/" style="font-size: 10px;">函数式编程</a><a href="/tags/分布式/" style="font-size: 20px;">分布式</a><a href="/tags/框架/" style="font-size: 20px;">框架</a><a href="/tags/爬虫/" style="font-size: 10px;">爬虫</a><a href="/tags/算法/" style="font-size: 20px;">算法</a>
+						<a href="/tags/JAVA基础/" style="font-size: 10px;">JAVA基础</a><a href="/tags/JMS/" style="font-size: 10px;">JMS</a><a href="/tags/LBS/" style="font-size: 10px;">LBS</a><a href="/tags/RPC/" style="font-size: 10px;">RPC</a><a href="/tags/Redis/" style="font-size: 10px;">Redis</a><a href="/tags/python/" style="font-size: 10px;">python</a><a href="/tags/中间件/" style="font-size: 10px;">中间件</a><a href="/tags/函数式编程/" style="font-size: 10px;">函数式编程</a><a href="/tags/分布式/" style="font-size: 20px;">分布式</a><a href="/tags/框架/" style="font-size: 20px;">框架</a><a href="/tags/爬虫/" style="font-size: 10px;">爬虫</a><a href="/tags/算法/" style="font-size: 20px;">算法</a>
 					</div>
 				</section>
 				
@@ -170,6 +170,70 @@
 	</div>
 </nav>
       <div class="body-wrap">
+  
+    <article id="post-String-immutable" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2015/07/13/String-immutable/" class="article-date">
+  	<time datetime="2015-07-12T16:00:00.000Z" itemprop="datePublished">2015-07-13</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/07/13/String-immutable/">从 String 讲 immutable 的重要性</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>当我们说某个对象是 immutable 的时候，即是指它被创建出来后，就不会再改变了。也意味着你可以随意使用，并且不用担心线程安全的问题。当然我们很乐意对象是不可变的，它可以让我们少耗点脑细胞。那么凭什么它就是不可变的呢？要是有人不遵循约定修改了它怎么办？</p>
+<p>让一个对象不可变当然得花点力气，比如最常见的做法是：</p>
+<ul>
+<li>定义 class 时，用 final 修饰符，以防止类被继承。</li>
+<li>对所有成员变量使用限定符 private。</li>
+<li>不提供修改成员变量的 public 方法。</li>
+</ul>
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JAVA基础/">JAVA基础</a></li></ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a  href="/2015/07/13/String-immutable/#more">more >></a>
+        </p>
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
   
     <article id="post-Collection-Pipeline" class="article article-type-post" itemscope itemprop="blogPost">
   

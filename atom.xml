@@ -5,7 +5,7 @@
   <subtitle><![CDATA[脑洞大开]]></subtitle>
   <link href="/atom.xml" rel="self"/>
   <link href="http://evthoriz.github.io//"/>
-  <updated>2015-07-21T06:14:30.000Z</updated>
+  <updated>2015-07-31T08:21:02.000Z</updated>
   <id>http://evthoriz.github.io//</id>
   
   <author>
@@ -14,6 +14,236 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title><![CDATA[GC root 和 Memory leak]]></title>
+    <link href="http://evthoriz.github.io/2015/07/30/gc-root-and-memory-leak/"/>
+    <id>http://evthoriz.github.io/2015/07/30/gc-root-and-memory-leak/</id>
+    <published>2015-07-29T16:00:00.000Z</published>
+    <updated>2015-07-31T08:21:02.000Z</updated>
+    <content type="html"><![CDATA[<h2 id="内存泄漏？">内存泄漏？</h2><p>JVM 采用的是 tracing GC，即从根 (GC root set) 开始追踪所有可到达的对象。将不可到达的对象清除。对象清理交给 JVM 管理，除非 JVM 有 bug，不会存在内存泄漏的问题。实际使用中，大多数出现 OOM 的情形也不是 GC 的问题，而是代码不当，很多对象明明不再使用但代码里却仍然在某处维持着到它们的强引用。典型的就是不断向 static map 这种静态容器里塞东西却从不移除；还有生产者生产速度大于消费者，然后队列没有控制好上限，也一样。这类情形其实算不上内存泄漏，因为引用还在，你也可以拿到它们，仍旧可以在某处把它们释放掉。</p>
+<p>但还有一种比较 tricky 的情形，代码中已经无处可以拿到这个对象的引用了，但是却无法被 GC 。<br>无法 GC 至少说明了一点，从 GC root 到对象是到可到达的，但是既然可到达，那引用是被谁持有了呢？引用存在却无处获取又是什么情况呢？</p>
+<a id="more"></a>
+<h2 id="关于_GC_root">关于 GC root</h2><p>首先从 GC root 说起，所谓 GC root 即一组被当作 GC 根节点的集合，tracing 正是从它们开始。那么哪些东西该被当作 GC root 呢？最容易想到的就是 JVM stack 里的数据了。每个线程创建之初都会分配一个私有的JVM stack，每个方法调用都会压入一个栈帧。栈里的某些变量，维持着到 heap 上对象的引用。因为栈里的数据正在被 thread 使用，故栈里的引用变量一定是 GC root。另外容易想到的就是方法区的静态变量了，类被加载后被放置在方法区，和类绑定的这些静态变量也极可能维持着到 heap 上对象的引用，故也属于 GC root。</p>
+<p>现在来看个例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Thread t = <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">            <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">                <span class="comment">// 新建实例，不使用</span></span><br><span class="line">                A a = <span class="keyword">new</span> A();</span><br><span class="line">        &#125;);</span><br><span class="line">        t.start();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">A</span> </span>&#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="title">A</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面这段代码是没有问题的，变量 a 每次新建了之后就被回收掉，不再属于 root set，所以它指向的对象会被 GC。</p>
+<p>然后稍微修改一下 A</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">A</span> </span>&#123;</span><br><span class="line">    <span class="comment">// static List&lt;Long&gt; l = new ArrayList&lt;&gt;(100000);</span></span><br><span class="line">    <span class="keyword">static</span> ThreadLocal&lt;A&gt; tl = <span class="keyword">new</span> ThreadLocal&lt;&gt;();</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">A</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        tl.set(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在 A 里加入了 ThreadLocal 类型的静态变量，这使得 t 内部会创建出一个 ThreadLocalMap 类型的 map。<br>现在这个 map 会多一条数据，引用了 Main$A 的实例。不过仍然没有问题，每次迭代不过是更新 tl 里的 value 罢了。因为 key 是一样的就是 ThreadLocal 的实例 tl 自己。</p>
+<p>tl 是静态变量，要让 tl 不同，需要想办法使得 tl 绑定的class 不是同一个。嗯，自定义类加载器就好了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">CustomClassLoader</span> <span class="keyword">extends</span> <span class="title">ClassLoader</span> </span>&#123;</span><br><span class="line"><span class="keyword">static</span> String basePath = <span class="string">"you/base/path/"</span>;</span><br><span class="line"></span><br><span class="line">CustomClassLoader() &#123;</span><br><span class="line">    <span class="keyword">super</span>(Main.class.getClassLoader());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="annotation">@Override</span></span><br><span class="line"><span class="keyword">protected</span> Class&lt;?&gt; loadClass(String className, <span class="keyword">boolean</span> resolve) <span class="keyword">throws</span> ClassNotFoundException &#123;</span><br><span class="line"></span><br><span class="line">    Class cls = <span class="keyword">super</span>.findLoadedClass(className);</span><br><span class="line">    <span class="keyword">if</span> (cls != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> cls;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (!A.class.getName().equals(className)) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">super</span>.loadClass(className, resolve);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        Path path = Paths.get(basePath + className.replace(<span class="string">'.'</span>, File.separatorChar).concat(<span class="string">".class"</span>));</span><br><span class="line">        <span class="keyword">byte</span>[] bytes = Files.readAllBytes(path);</span><br><span class="line">        cls = defineClass(className, bytes, <span class="number">0</span>, bytes.length);</span><br><span class="line">        <span class="keyword">if</span> (resolve) &#123;</span><br><span class="line">            resolveClass(cls);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> cls;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (SecurityException e) &#123;</span><br><span class="line">        cls = <span class="keyword">super</span>.loadClass(className, resolve);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> ClassNotFoundException(<span class="string">"Could not load class: "</span> + className);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> cls;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>再修改下 main 函数，使用自定义类加载器来加载 A。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    Thread t = <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) &#123; </span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">               <span class="comment">// A a = new A();</span></span><br><span class="line">                ClassLoader custom = <span class="keyword">new</span> CustomClassLoader();</span><br><span class="line">                Class&lt;?&gt; AClass = Class.forName(A.class.getName(), <span class="keyword">true</span>, custom);</span><br><span class="line">                AClass.newInstance();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">    t.start();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接着再运行。<br>OOM了。</p>
+<p>发生了什么？由于使用了自定义类加载器，且每次都用了新建的类加载器，加载出来的类A都互不相同。由于 t 不会主动处理它的 ThreadLocalMap，这样每加载一次类 A，构造一次实例，map 里都会塞进一个 &lt;新建的tl实例 , 新加载的 Main$A 的实例&gt; 这样一对数据。而由于 a 每次都被销毁，你无从通过 a 去调用 tl.remove()。这意味着只要线程不退出，它的 ThreadLocalMap 里的数据没有办法从代码的其他地方清除。后面 OOM 还能分成两种情况：如果类 A 里还有静态变量维持着到巨大对象的引用，那么可能那些巨大对象先撑满堆，OOM: heap space 先发生。如果 heap 足够大，那么由于不停的加载 ‘<strong>新</strong>’ 类，可能先发生 OOM: permGen space（注 Java8 已经移除了PermGen）。</p>
+<p>说到底，t 相当于在这里扮演了一个 GC root 的角色。t 内的 ThreadLocalMap 的生命周期和 t 一样长，而这个 map 无从处理。故某种角度来说算的上是内存泄漏了。</p>
+<h2 id="J2EE_里的_ClassLoader_Leak">J2EE 里的 ClassLoader Leak</h2><p>这里讨论的情形并不罕见。在 J2EE 里其实很容易出现。把这里的线程当成 web container，把这里的 ThreadLocalMap 当成 web container 里的某处 cache，把对 a 和 A 和 customClassLoader 的销毁和重建当成 redeploy。当 web 容器 redeploy 时，是期望将原来加载的 app 相关的类全部给 unload 掉，再重新加载的。但是一旦不小心在某处留下了一个引用没有被清理，那么这个引用的对象的 Class 和 ClassLoader 都无法被 unload 掉，遂导致这个 ClassLoader 加载的所有 Class 无法被 unload。这样多次的 redeploy， 很容易造成 permGen 空间不足。</p>
+<h2 id="Ref-">Ref.</h2><p><a href="http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-2.html" target="_blank" rel="external">The Structure of the Java Virtual Machine</a></p>
+<p><a href="https://www.yourkit.com/docs/java/help/gc_roots.jsp" target="_blank" rel="external">GC roots</a></p>
+<p><a href="https://plumbr.eu/blog/memory-leaks/what-is-a-permgen-leak" target="_blank" rel="external">What is a PermGen leak?</a></p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<h2 id="内存泄漏？">内存泄漏？</h2><p>JVM 采用的是 tracing GC，即从根 (GC root set) 开始追踪所有可到达的对象。将不可到达的对象清除。对象清理交给 JVM 管理，除非 JVM 有 bug，不会存在内存泄漏的问题。实际使用中，大多数出现 OOM 的情形也不是 GC 的问题，而是代码不当，很多对象明明不再使用但代码里却仍然在某处维持着到它们的强引用。典型的就是不断向 static map 这种静态容器里塞东西却从不移除；还有生产者生产速度大于消费者，然后队列没有控制好上限，也一样。这类情形其实算不上内存泄漏，因为引用还在，你也可以拿到它们，仍旧可以在某处把它们释放掉。</p>
+<p>但还有一种比较 tricky 的情形，代码中已经无处可以拿到这个对象的引用了，但是却无法被 GC 。<br>无法 GC 至少说明了一点，从 GC root 到对象是到可到达的，但是既然可到达，那引用是被谁持有了呢？引用存在却无处获取又是什么情况呢？</p>]]>
+    
+    </summary>
+    
+      <category term="JAVA基础" scheme="http://evthoriz.github.io/tags/JAVA%E5%9F%BA%E7%A1%80/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[protected 修饰符总结]]></title>
+    <link href="http://evthoriz.github.io/2015/07/28/Protected-Summary/"/>
+    <id>http://evthoriz.github.io/2015/07/28/Protected-Summary/</id>
+    <published>2015-07-27T16:00:00.000Z</published>
+    <updated>2015-07-31T08:12:29.000Z</updated>
+    <content type="html"><![CDATA[<p>这两天看资料，顺便整理一下 Java 的 protected 修饰符，以免遗忘。</p>
+<p>假定两个类定义在两个包中:</p>
+<table>
+<thead>
+<tr>
+<th>package</th>
+<th>Class</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>p</td>
+<td>P</td>
+</tr>
+<tr>
+<td>c</td>
+<td>C extends P</td>
+</tr>
+</tbody>
+</table>
+<a id="more"></a>
+<p>有以下结论：</p>
+<ol>
+<li><p>类P 的 protected 成员方法在 包p 内可见，包外不可见。</p>
+</li>
+<li><p>类C 可以继承得到所有 类P 的 protected 成员方法，类C 继承得到的 protected 成员方法在 类C 内可以自由使用，但是只限于 类C 内。</p>
+</li>
+<li><p>类C 内无法通过 类P 访问 类P 的 protected 成员方法。</p>
+</li>
+<li><p>包c 内无法通过 类C 访问 类C 继承得来的 protected 成员方法。</p>
+</li>
+<li><p>包p 内可以通过 类C 访问 类C 继承得来的 protected 成员方法。</p>
+</li>
+</ol>
+<p><strong>以上归纳为一点：protected 包外不可见原则。</strong></p>
+<p>同时针对成员变量有效。</p>
+<p>针对构造函数，首先构造函数不能继承／覆写，只能重载。然后，该原则仍旧适用，因为你无法在包外调用 类P 的构造函数。但是子类可以在构造函数内使用 super() 来用父类的 protected 构造函数（行为和继承 protected 成员方法情形相似，但构造函数是不继承的）。</p>
+<p>验证代码：</p>
+<p><em>package p;</em></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Parent</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> balance = <span class="number">100</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="title">Parent</span><span class="params">(<span class="keyword">int</span> balance)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.balance = balance;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Parent</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">credit</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (balance &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">            System.out.println(<span class="string">"not enough balance"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">this</span>.balance -= <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><em>package c;</em></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Child</span> <span class="keyword">extends</span> <span class="title">Parent</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Child</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(<span class="number">0</span>); <span class="comment">// correct</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">play</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        credit(); <span class="comment">// 继承的方法，correct。 (2)</span></span><br><span class="line"><span class="comment">//      Parent p = new Parent(10); // compile error! 包外不可见。 (1)</span></span><br><span class="line">        Parent p = <span class="keyword">new</span> Parent();</span><br><span class="line"><span class="comment">//      p.credit(); // compile error，包外，父类的 protected 方法仍旧不可见。(1)</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><em>package c;</em></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Other</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">play</span><span class="params">()</span> </span>&#123;</span><br><span class="line"><span class="comment">//      Parent p = new Parent(200); // compile error! 包外不可见。 (1)</span></span><br><span class="line">        Parent p = <span class="keyword">new</span> Parent(); <span class="comment">// correct, public</span></span><br><span class="line"><span class="comment">//      p.credit(); // compile error! 包外不可见。 (3)</span></span><br><span class="line"></span><br><span class="line">        Child c = <span class="keyword">new</span> Child();</span><br><span class="line"><span class="comment">//      c.credit(); // compile error! 调用的父类方法，还是属于不同的package。 (4)</span></span><br><span class="line"><span class="comment">//      Child c2 = new Child(12); // compile error! 没有带参构造函数。</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><em>package p;</em></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Other</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">play</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Parent p = <span class="keyword">new</span> Parent(<span class="number">200</span>); <span class="comment">// correct, 同一个 package。 (1)</span></span><br><span class="line"><span class="comment">//      Parent p = new Parent(); // correct, public</span></span><br><span class="line">        p.credit(); <span class="comment">// correct, 同一个 package。  (1)</span></span><br><span class="line"></span><br><span class="line">        Child c = <span class="keyword">new</span> Child();</span><br><span class="line">        c.credit(); <span class="comment">// correct, 方法原本就属于这个 package (5)</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>这两天看资料，顺便整理一下 Java 的 protected 修饰符，以免遗忘。</p>
+<p>假定两个类定义在两个包中:</p>
+<table>
+<thead>
+<tr>
+<th>package</th>
+<th>Class</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>p</td>
+<td>P</td>
+</tr>
+<tr>
+<td>c</td>
+<td>C extends P</td>
+</tr>
+</tbody>
+</table>]]>
+    
+    </summary>
+    
+      <category term="JAVA基础" scheme="http://evthoriz.github.io/tags/JAVA%E5%9F%BA%E7%A1%80/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[SpringMVC 源码阅读]]></title>
+    <link href="http://evthoriz.github.io/2015/07/25/SpringMVC%20%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/"/>
+    <id>http://evthoriz.github.io/2015/07/25/SpringMVC 源码阅读/</id>
+    <published>2015-07-24T16:00:00.000Z</published>
+    <updated>2015-07-31T08:29:17.000Z</updated>
+    <content type="html"><![CDATA[<h2 id="从_Servlet_开始">从 Servlet 开始</h2><p>Web container 以 Jetty 为例，初始化的时候从 web.xml 中加载配置的 servlet。这个 servlet 当然是按照 <code>javax.servlet.Servlet</code> 接口实现的。由 Jetty 的 servletHolder 维护。Jetty 在接受到请求时，根据映射关系找出符合的 servletHolder 处理，servletHolder 才使用其维护的 servlet，调用标准接口方法 <code>service</code>。</p>
+<p><strong>Interface Servlet</strong></p>
+<table>
+<thead>
+<tr>
+<th>Modifier and Type</th>
+<th>Method and Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>void</td>
+<td>service(ServletRequest req, ServletResponse res)<br><em>Called by the servlet container to allow the servlet to respond to a request.</em></td>
+</tr>
+</tbody>
+</table>
+<p>和 SpringMVC 结合使用时，在 web.xml 中配置的 servlet 就是 Spring 的 <code>DispatcherServlet</code> 了。</p>
+<a id="more"></a>
+<p>看看 DispatcherServlet 的继承类和实现接口<br><img src="\img\springmvc-dispatcherservlet-1.png" alt="springmvc-dispatcherservlet-1"></p>
+<p>可以看到 DispacherServlet 在 Spring 包里的继承关系中还有两个类 <code>FrameworkServlet</code> 和 <code>HttpServletBean</code>。并由 HttpServletBean 来继承 <code>javax.servlet</code> 库里的 <code>HttpServlet</code> 来最终完成对标准接口的实现和扩展。</p>
+<p>FrameworkServlet 的角色的官方说明：</p>
+<blockquote>
+<p>Base servlet for Spring’s web framework. Provides integration with a Spring application context, in a JavaBean-based overall solution.</p>
+</blockquote>
+<p>FrameworkServlet 即我们通常定义的基类，但它只有 DispatcherServlet 一个子类，故一个基本作用就是处理周边工作。同时它还是一个抽象类，唯一一个抽象方法是 <code>doService</code> 。由于间接继承了 HttpServlet，故可以覆写所有的 doGet、doPost 系列的方法，并将处理逻辑统一交给方法 <code>processRequest</code>处理。processRequest 稍微处理了下 request 就丢给 doService 了。</p>
+<table>
+<thead>
+<tr>
+<th>Modifier and Type</th>
+<th>Method and Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>protected abstract void</td>
+<td>doService(HttpServletRequest request, HttpServletResponse response) <br> <em>Subclasses must implement this method to do the work of request handling, receiving a centralized callback for GET, POST, PUT and DELETE.</em></td>
+</tr>
+</tbody>
+</table>
+<p>这个方法，只要 debug 过 Spring 的 DispatcherServlet 就一定很熟悉了。    <code>doDispatch</code>方法就是由它调用的。</p>
+<p>梳理一下调用链</p>
+<ol>
+<li>service —&gt; 2. doGet/…/doPost —&gt; 3.processRequst —&gt; 4. doService —&gt; 5. doDispatch</li>
+</ol>
+<p>1 和 2 其实是 HttpServlet 里的标准方法，但是 HttpServlet 里没有对 HTTP PATCH 方法进行支持，故 1 在 FrameworkServlet 里被覆写，加入了对 PATCH 方法的处理。2 很自然的是在 FrameworkServlet 里重写的。3 是Framework里的处理。4 是由 FrameworkServlet 定义的抽象方法，由 DispatcherServlet 实现。5 就是 DispatcherServlet 的重头戏了。</p>
+<p>注意这个调用链的参数一直都是 <code>(HttpServletRequest req, HttpServletResponse resp)</code></p>
+<p>因此可以看出只是逻辑转移，增加控制。</p>
+<p>FrameworkServlet 究竟做了哪些周边工作呢？</p>
+<ul>
+<li>为每个 servlet 管理一个 <code>WebApplicationContext</code> 实例，servlet 的配置项由 servlet 命名空间里的 beans 指定。</li>
+<li>发布请求处理产生的事件，无论这个请求是否被成功处理。</li>
+</ul>
+<p>功能一的一部分是由它的父类 <code>HttpServletBean</code>参与完成的。这个类是个没有抽象方法的抽象类（就是不让你实例化），它很单纯，就是将 web.xml 里的初始化参数读进来并转换成 bean，同时应用子类（此处即 FrameworkServlet ）的初始化。然后 ApplicationContext 的概念是放在 FrameworkServlet 的，它的初始化即将 servlet的配置加载进 context 中。将 context 和 servlet 维护好。</p>
+<p>功能二是当请求被 DispatcherServlet 处理完之后，在 processRequest 的最后发送一个事件给所有监听器，监听器会做好后续工作，失败，异常，context 变动等等。</p>
+<p><strong>到这里，可以看出抽象出 FrameworkServlet 这个类的作用了，和它的命名一样，继承和覆写 Servlet 功能，配好环境（上下文），并控制框架的整体处理逻辑。</strong></p>
+<h2 id="进入_DispatcherServlet">进入 DispatcherServlet</h2><p>这个类可以说是 SpringMVC 的枢纽，通过它，Controller、Model、View 得到了统一调度，和谐运作。它们的逻辑关系，就在熟悉的 <code>doDispatch</code>方法里了。</p>
+<p>和他们密切相关的几个类是：</p>
+<ul>
+<li>C: HandlerMapping、HandlerAdaptor、HandlerInterceptor</li>
+<li>M: ModelMap</li>
+<li>V: View、ViewResolver</li>
+</ul>
+<p>还有大家熟知的 ModelAndView 里，维护的就是一个 ModelMap 和一个 View。</p>
+<p>简单解释下各个类的作用。</p>
+<p>HandlerMapping 通过映射关系，找到对应的 Handler。</p>
+<p>HandlerAdaptor 是一个 handler 的适配器，维护了一个 Object 类型的 handler。它的存在，为无限类型的 handler 扩展提供了可能。</p>
+<p>HandlerInterceptor 是一个接口， 用于 handler 的拦截器，会在 handler 处理的前，后，结束时调用。具体拦截到之后的处理逻辑交给用户自定义。</p>
+<p>ModelMap 是一个 LinkedHashMap 存储各种属性（处理结果）的键值对。</p>
+<p>ViewResolver 是一个接口，作用是根据 viewName 获取对应的 View。View 也定义成了接口，提供 render 方法。不同的 ViewResolver 会根据 viewName 找到对应的 View 实现类，把 view render 到 response 里。<strong>这么做的好处是可以支持无限种类的视图技术，以及它们的组合使用。</strong></p>
+<p>下面是 doDispatch 的源码。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doDispatch</span><span class="params">(HttpServletRequest request, HttpServletResponse response)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    HttpServletRequest processedRequest = request;</span><br><span class="line">    <span class="comment">// HandlerExecutionChain 是一个包含了 Handler 和 InterceptorList 的执行链。</span></span><br><span class="line">    HandlerExecutionChain mappedHandler = <span class="keyword">null</span>;</span><br><span class="line">    <span class="comment">// 标记请求是否转换成了处理 multipart 的请求</span></span><br><span class="line">    <span class="keyword">boolean</span> multipartRequestParsed = <span class="keyword">false</span>;</span><br><span class="line">    <span class="comment">// 放一个 asyncManager 到 request 中</span></span><br><span class="line">    WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        ModelAndView mv = <span class="keyword">null</span>;</span><br><span class="line">        Exception dispatchException = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// 通过一个 multipartResolver 检测并尝试转换</span></span><br><span class="line">            processedRequest = checkMultipart(request);</span><br><span class="line">            <span class="comment">// 是否真的转换</span></span><br><span class="line">            multipartRequestParsed = (processedRequest != request);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 通过 handlerMappings 找到对应的 handler 和 interceptors 并返回执行链</span></span><br><span class="line">            mappedHandler = getHandler(processedRequest);</span><br><span class="line">            <span class="keyword">if</span> (mappedHandler == <span class="keyword">null</span> || mappedHandler.getHandler() == <span class="keyword">null</span>) &#123;</span><br><span class="line">                noHandlerFound(processedRequest, response);</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 为这个 handler 找到对应的 HandlerAdaptor</span></span><br><span class="line">            HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 检查 lastModified，没有新改动就返回</span></span><br><span class="line">            String method = request.getMethod();</span><br><span class="line">            <span class="keyword">boolean</span> isGet = <span class="string">"GET"</span>.equals(method);</span><br><span class="line">            <span class="keyword">if</span> (isGet || <span class="string">"HEAD"</span>.equals(method)) &#123;</span><br><span class="line">                <span class="keyword">long</span> lastModified = ha.getLastModified(request, mappedHandler.getHandler());</span><br><span class="line">                <span class="keyword">if</span> (logger.isDebugEnabled()) &#123;</span><br><span class="line">                    logger.debug(<span class="string">"Last-Modified value for ["</span> + getRequestUri(request) + <span class="string">"] is: "</span> + lastModified);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (<span class="keyword">new</span> ServletWebRequest(request, response).checkNotModified(lastModified) &amp;&amp; isGet) &#123;</span><br><span class="line">                    <span class="keyword">return</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// 启用执行链里的所有拦截器的预处理，未通过则返回</span></span><br><span class="line">            <span class="keyword">if</span> (!mappedHandler.applyPreHandle(processedRequest, response)) &#123;</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 用 handlerAdaptor 来处理请求并返回 ModelAndView</span></span><br><span class="line">            mv = ha.handle(processedRequest, response, mappedHandler.getHandler());</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 看 handler 是否是异步处理的</span></span><br><span class="line">            <span class="keyword">if</span> (asyncManager.isConcurrentHandlingStarted()) &#123;</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            </span><br><span class="line">            applyDefaultViewName(request, mv);</span><br><span class="line">            <span class="comment">// 启用执行链里的所有拦截器的后处理。</span></span><br><span class="line">            mappedHandler.applyPostHandle(processedRequest, response, mv);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (Exception ex) &#123;</span><br><span class="line">            dispatchException = ex;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 处理 handler 的执行结果，并渲染 view 到响应中，有异常则会渲染一个 error view。同时启用执行链里所有拦截器的完结处理。</span></span><br><span class="line">        processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">catch</span> (Exception ex) &#123;</span><br><span class="line">        <span class="comment">// 在异常发生时，启用执行链里所有拦截器的完结处理。</span></span><br><span class="line">        triggerAfterCompletion(processedRequest, response, mappedHandler, ex);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">catch</span> (Error err) &#123;</span><br><span class="line">        <span class="comment">// 在错误发生时，启用执行链里所有拦截器的完结处理，总之就是要把拦截器里定义的完结处理给做完。</span></span><br><span class="line">        triggerAfterCompletionWithError(processedRequest, response, mappedHandler, err);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (asyncManager.isConcurrentHandlingStarted()) &#123;</span><br><span class="line">            <span class="comment">// 如果请求是异步处理的，应用的异步拦截器的后处理。</span></span><br><span class="line">            <span class="keyword">if</span> (mappedHandler != <span class="keyword">null</span>) &#123;</span><br><span class="line">                mappedHandler.applyAfterConcurrentHandlingStarted(processedRequest, response);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// 释放 multiPartRequest 持有的所有资源。</span></span><br><span class="line">            <span class="keyword">if</span> (multipartRequestParsed) &#123;</span><br><span class="line">                cleanupMultipart(processedRequest);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面用到的对象，都在<code>initStrategies</code>这个函数内初始化了。初始化逻辑都差不多，从上下文中根据 Key 获取 bean，赋值给 dispatcherServlet 的成员变量。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initStrategies</span><span class="params">(ApplicationContext context)</span> </span>&#123;</span><br><span class="line">	initMultipartResolver(context);</span><br><span class="line">	initLocaleResolver(context);</span><br><span class="line">	initThemeResolver(context);</span><br><span class="line">	initHandlerMappings(context);</span><br><span class="line">	initHandlerAdapters(context);</span><br><span class="line">	initHandlerExceptionResolvers(context);</span><br><span class="line">	initRequestToViewNameTranslator(context);</span><br><span class="line">	initViewResolvers(context);</span><br><span class="line">	initFlashMapManager(context);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看下 initMultipartResolver 里初始化的代码。context 里的 bean 均是 FrameworkServlet 里 initWebApplicationContext() 加载进去的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">this</span>.multipartResolver = context.getBean(MULTIPART_RESOLVER_BEAN_NAME, MultipartResolver.class);</span><br></pre></td></tr></table></figure>
+<p>总的来说，看一下 SpringMVC 的源码还是比较有收获的。可以看到依托于 Spring 的依赖注入之上，SpringMVC 本身结构很清晰，扩展性强。</p>
+<h2 id="Ref-">Ref.</h2><p><a href="http://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html" target="_blank" rel="external">Web MVC framework</a></p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<h2 id="从_Servlet_开始">从 Servlet 开始</h2><p>Web container 以 Jetty 为例，初始化的时候从 web.xml 中加载配置的 servlet。这个 servlet 当然是按照 <code>javax.servlet.Servlet</code> 接口实现的。由 Jetty 的 servletHolder 维护。Jetty 在接受到请求时，根据映射关系找出符合的 servletHolder 处理，servletHolder 才使用其维护的 servlet，调用标准接口方法 <code>service</code>。</p>
+<p><strong>Interface Servlet</strong></p>
+<table>
+<thead>
+<tr>
+<th>Modifier and Type</th>
+<th>Method and Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>void</td>
+<td>service(ServletRequest req, ServletResponse res)<br><em>Called by the servlet container to allow the servlet to respond to a request.</em></td>
+</tr>
+</tbody>
+</table>
+<p>和 SpringMVC 结合使用时，在 web.xml 中配置的 servlet 就是 Spring 的 <code>DispatcherServlet</code> 了。</p>]]>
+    
+    </summary>
+    
+      <category term="Spring" scheme="http://evthoriz.github.io/tags/Spring/"/>
+    
+      <category term="框架" scheme="http://evthoriz.github.io/tags/%E6%A1%86%E6%9E%B6/"/>
+    
+  </entry>
   
   <entry>
     <title><![CDATA[Java8 lambda 简明要义]]></title>

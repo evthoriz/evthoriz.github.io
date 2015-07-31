@@ -1463,36 +1463,46 @@ a {
 }
 .article-entry pre,
 .article-entry .highlight {
-  background: #4d4d4d;
+  background: url("/img/blueprint-dark.png") top center #fafbfc;
   margin: 10px 0;
-  padding: 10px 10px;
+  padding-left: 0;
   overflow: auto;
-  color: #4c4c4c;
-  line-height: 22.400000000000002px;
+  border-left: 6px solid #558abb;
+  -moz-tab-size: 4;
+  tab-size: 4;
+  text-shadow: none;
 }
-.article-entry .highlight .gutter pre,
-.article-entry .gist .gist-file .gist-data .line-numbers {
-  color: #666;
-  font-size: 0.85em;
+.article-entry .highlight .gutter pre {
+  color: #999;
+  left: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 6px;
+  padding-right: 6px;
+  min-width: 1em;
+  margin-top: 1em;
+  font: 700 65%/1.5 sans-serif;
+  text-align: center;
+  text-shadow: none;
 }
 .article-entry pre,
 .article-entry code {
   font-family: "Source Code Pro", Consolas, Monaco, Menlo, Consolas, monospace;
+  padding-left: 0;
 }
 .article-entry code {
   background: #eee;
-  text-shadow: 0 1px #fff;
   padding: 0 0.3em;
   border: none;
 }
 .article-entry pre {
-  color: #eef8fc;
+  color: code-word;
 }
 .article-entry pre code {
   background: none;
   text-shadow: none;
   padding: 0;
-  color: #eef8fc;
+  color: code-word;
 }
 .article-entry .highlight pre {
   border: none;
@@ -1508,8 +1518,8 @@ a {
   padding: 0;
 }
 .article-entry .highlight figcaption {
-  font-size: 0.85em;
-  color: #a6e22e;
+  font-size: 1rem;
+  color: highlight-comment;
   line-height: 1em;
   margin-bottom: 1em;
 }
@@ -1524,6 +1534,10 @@ a {
 .article-entry .highlight figcaption a {
   float: right;
 }
+.article-entry .highlight .gutter {
+  margin: 0;
+  vertical-align: middle;
+}
 .article-entry .highlight .gutter pre {
   text-align: right;
   padding-right: 20px;
@@ -1533,111 +1547,30 @@ a {
 }
 .article-entry .highlight .line {
   font-size: 14px;
-  height: 22.400000000000002px;
+  height: 15px;
 }
-.article-entry .gist {
-  margin: 0 -20px;
-  border-style: solid;
-  border-color: #ddd;
-  border-width: 1px 0;
-  background: #272822;
-  padding: 15px 20px 15px 0;
-}
-.article-entry .gist .gist-file {
-  border: none;
-  font-family: "Source Code Pro", Consolas, Monaco, Menlo, Consolas, monospace;
-  margin: 0;
-}
-.article-entry .gist .gist-file .gist-data {
-  background: none;
-  border: none;
-}
-.article-entry .gist .gist-file .gist-data .line-numbers {
-  background: none;
-  border: none;
-  padding: 0 20px 0 0;
-}
-.article-entry .gist .gist-file .gist-data .line-data {
-  padding: 0 !important;
-}
-.article-entry .gist .gist-file .highlight {
-  margin: 0;
-  padding: 0;
-  border: none;
-}
-.article-entry .gist .gist-file .gist-meta {
-  background: #272822;
-  color: #a6e22e;
-  font: 0.85em "Helvetica Neue", Helvetica, Arial, sans-serif;
-  text-shadow: 0 0;
-  padding: 0;
-  margin-top: 1em;
-  margin-left: 20px;
-}
-.article-entry .gist .gist-file .gist-meta a {
-  color: #258fb8;
-  font-weight: normal;
-}
-.article-entry .gist .gist-file .gist-meta a:hover {
-  text-decoration: underline;
-}
-pre .comment {
-  color: #ddd;
+.article-entry p code,
+.article-entry li code {
+  color: #505050;
+  background: #fff;
 }
 pre .title {
-  color: #a6e22e;
+  color: #000;
 }
-pre .variable,
-pre .attribute,
-pre .tag,
-pre .regexp,
-pre .ruby .constant,
-pre .xml .tag .title,
-pre .xml .pi,
-pre .xml .doctype,
-pre .html .doctype,
-pre .css .id,
-pre .css .class,
-pre .css .pseudo {
-  color: #f2777a;
+pre .comment {
+  color: #800;
 }
-pre .number,
-pre .preprocessor,
-pre .built_in,
-pre .literal,
-pre .params,
-pre .constant {
-  color: #66d9ef;
+pre .string {
+  color: #080;
 }
-pre .class,
-pre .ruby .class .title,
-pre .css .rules .attribute {
-  color: #e6db74;
+pre .keyword {
+  color: #008;
 }
-pre .string,
-pre .value,
-pre .inheritance,
-pre .header,
-pre .ruby .symbol,
-pre .xml .cdata {
-  color: #e6db74;
+pre .number {
+  color: #76d;
 }
-pre .css .hexcolor {
-  color: #6cc;
-}
-pre .function,
-pre .python .decorator,
-pre .python .title,
-pre .ruby .function .title,
-pre .ruby .title .keyword,
-pre .perl .sub,
-pre .javascript .title,
-pre .coffeescript .title {
-  color: #69c;
-}
-pre .keyword,
-pre .javascript .function {
-  color: #f92672;
+pre .annotation {
+  color: #066;
 }
 #footer {
   font-size: 12px;

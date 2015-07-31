@@ -107,7 +107,7 @@
 				
 				<section class="switch-part switch-part2">
 					<div class="widget tagcloud" id="js-tagcloud">
-						<a href="/tags/JAVA基础/" style="font-size: 20px;">JAVA基础</a><a href="/tags/JMS/" style="font-size: 10px;">JMS</a><a href="/tags/LBS/" style="font-size: 10px;">LBS</a><a href="/tags/RPC/" style="font-size: 10px;">RPC</a><a href="/tags/Redis/" style="font-size: 10px;">Redis</a><a href="/tags/python/" style="font-size: 10px;">python</a><a href="/tags/中间件/" style="font-size: 10px;">中间件</a><a href="/tags/函数式编程/" style="font-size: 20px;">函数式编程</a><a href="/tags/分布式/" style="font-size: 20px;">分布式</a><a href="/tags/框架/" style="font-size: 20px;">框架</a><a href="/tags/爬虫/" style="font-size: 10px;">爬虫</a><a href="/tags/算法/" style="font-size: 20px;">算法</a>
+						<a href="/tags/JAVA基础/" style="font-size: 20px;">JAVA基础</a><a href="/tags/JMS/" style="font-size: 10px;">JMS</a><a href="/tags/LBS/" style="font-size: 10px;">LBS</a><a href="/tags/RPC/" style="font-size: 10px;">RPC</a><a href="/tags/Redis/" style="font-size: 10px;">Redis</a><a href="/tags/Spring/" style="font-size: 10px;">Spring</a><a href="/tags/python/" style="font-size: 10px;">python</a><a href="/tags/中间件/" style="font-size: 10px;">中间件</a><a href="/tags/函数式编程/" style="font-size: 13.33px;">函数式编程</a><a href="/tags/分布式/" style="font-size: 13.33px;">分布式</a><a href="/tags/框架/" style="font-size: 16.67px;">框架</a><a href="/tags/爬虫/" style="font-size: 10px;">爬虫</a><a href="/tags/算法/" style="font-size: 13.33px;">算法</a>
 					</div>
 				</section>
 				
@@ -170,6 +170,216 @@
 	</div>
 </nav>
       <div class="body-wrap">
+  
+    <article id="post-gc-root-and-memory-leak" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2015/07/30/gc-root-and-memory-leak/" class="article-date">
+  	<time datetime="2015-07-29T16:00:00.000Z" itemprop="datePublished">2015-07-30</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/07/30/gc-root-and-memory-leak/">GC root 和 Memory leak</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="内存泄漏？">内存泄漏？</h2><p>JVM 采用的是 tracing GC，即从根 (GC root set) 开始追踪所有可到达的对象。将不可到达的对象清除。对象清理交给 JVM 管理，除非 JVM 有 bug，不会存在内存泄漏的问题。实际使用中，大多数出现 OOM 的情形也不是 GC 的问题，而是代码不当，很多对象明明不再使用但代码里却仍然在某处维持着到它们的强引用。典型的就是不断向 static map 这种静态容器里塞东西却从不移除；还有生产者生产速度大于消费者，然后队列没有控制好上限，也一样。这类情形其实算不上内存泄漏，因为引用还在，你也可以拿到它们，仍旧可以在某处把它们释放掉。</p>
+<p>但还有一种比较 tricky 的情形，代码中已经无处可以拿到这个对象的引用了，但是却无法被 GC 。<br>无法 GC 至少说明了一点，从 GC root 到对象是到可到达的，但是既然可到达，那引用是被谁持有了呢？引用存在却无处获取又是什么情况呢？</p>
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JAVA基础/">JAVA基础</a></li></ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a  href="/2015/07/30/gc-root-and-memory-leak/#more">more >></a>
+        </p>
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
+  
+    <article id="post-Protected-Summary" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2015/07/28/Protected-Summary/" class="article-date">
+  	<time datetime="2015-07-27T16:00:00.000Z" itemprop="datePublished">2015-07-28</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/07/28/Protected-Summary/">protected 修饰符总结</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>这两天看资料，顺便整理一下 Java 的 protected 修饰符，以免遗忘。</p>
+<p>假定两个类定义在两个包中:</p>
+<table>
+<thead>
+<tr>
+<th>package</th>
+<th>Class</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>p</td>
+<td>P</td>
+</tr>
+<tr>
+<td>c</td>
+<td>C extends P</td>
+</tr>
+</tbody>
+</table>
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JAVA基础/">JAVA基础</a></li></ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a  href="/2015/07/28/Protected-Summary/#more">more >></a>
+        </p>
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
+  
+    <article id="post-SpringMVC 源码阅读" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2015/07/25/SpringMVC 源码阅读/" class="article-date">
+  	<time datetime="2015-07-24T16:00:00.000Z" itemprop="datePublished">2015-07-25</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/07/25/SpringMVC 源码阅读/">SpringMVC 源码阅读</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="从_Servlet_开始">从 Servlet 开始</h2><p>Web container 以 Jetty 为例，初始化的时候从 web.xml 中加载配置的 servlet。这个 servlet 当然是按照 <code>javax.servlet.Servlet</code> 接口实现的。由 Jetty 的 servletHolder 维护。Jetty 在接受到请求时，根据映射关系找出符合的 servletHolder 处理，servletHolder 才使用其维护的 servlet，调用标准接口方法 <code>service</code>。</p>
+<p><strong>Interface Servlet</strong></p>
+<table>
+<thead>
+<tr>
+<th>Modifier and Type</th>
+<th>Method and Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>void</td>
+<td>service(ServletRequest req, ServletResponse res)<br><em>Called by the servlet container to allow the servlet to respond to a request.</em></td>
+</tr>
+</tbody>
+</table>
+<p>和 SpringMVC 结合使用时，在 web.xml 中配置的 servlet 就是 Spring 的 <code>DispatcherServlet</code> 了。</p>
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring/">Spring</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/框架/">框架</a></li></ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a  href="/2015/07/25/SpringMVC 源码阅读/#more">more >></a>
+        </p>
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
   
     <article id="post-Java8-lambda-brief" class="article article-type-post" itemscope itemprop="blogPost">
   
@@ -595,202 +805,10 @@
 
 
   
-    <article id="post- HornetQ-and-JMS " class="article article-type-post" itemscope itemprop="blogPost">
   
-    <div class="article-meta">
-      <a href="/2015/06/25/ HornetQ-and-JMS /" class="article-date">
-  	<time datetime="2015-06-24T16:00:00.000Z" itemprop="datePublished">2015-06-25</time>
-</a>
-    </div>
-  
-  <div class="article-inner">
-    
-      <input type="hidden" class="isFancy" />
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/06/25/ HornetQ-and-JMS /">从 HornetQ 讲 JMS</a>
-    </h1>
-  
-
-      </header>
-      
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="HornetQ_简介">HornetQ 简介</h2><p>HornetQ 是众多高性能消息中间件之一，用 Java 实现，由 JBOSS 开源，支持</p>
-<ul>
-<li>message persistent</li>
-<li>standalone &amp; embedded</li>
-<li>JMS 1.1 &amp; 2.0 API</li>
-</ul>
-<h2 id="JMS_简介">JMS 简介</h2><p>JMS 全称 Java Message Service，是一种消息队列服务的规范。所有实现了JMS 的产品（消息中间件）都应该能够通过一个符合 JMS 规范的客户端访问。HornetQ 提供了一套 core api 用于对自己 service 的原生访问，同时也按照 JMS 规范在核心 API 上封装了一层 JMS Facade。<br>使用 JMS 可以达到的目的 </p>
-<ul>
-<li>系统解耦</li>
-<li>异步</li>
-</ul>
-<p>JMS 支持的域模型    </p>
-<ul>
-<li>Queue</li>
-<li>Pub/Sub</li>
-</ul>
-      
-    </div>
-    
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JMS/">JMS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/中间件/">中间件</a></li></ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a  href="/2015/06/25/ HornetQ-and-JMS /#more">more >></a>
-        </p>
-      
-      <div class="clearfix"></div>
-    </div>
-    
-  </div>
-  
-</article>
-
-
-
-
-
-
-
-  
-    <article id="post-write-a-cawler" class="article article-type-post" itemscope itemprop="blogPost">
-  
-    <div class="article-meta">
-      <a href="/2015/03/15/write-a-cawler/" class="article-date">
-  	<time datetime="2015-03-14T16:00:00.000Z" itemprop="datePublished">2015-03-15</time>
-</a>
-    </div>
-  
-  <div class="article-inner">
-    
-      <input type="hidden" class="isFancy" />
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/03/15/write-a-cawler/">写一个简单的爬虫</a>
-    </h1>
-  
-
-      </header>
-      
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>一个爬虫的基本功能包括        </p>
-<ul>
-<li>获取网页   </li>
-<li>分析内容   </li>
-<li>处理结果   </li>
-</ul>
-<p>以 python 为例，写一个下载图片的爬虫。   </p>
-<h2 id="下载网页">下载网页</h2><p>第一步获取网页内容，需要像目标服务器发送 HTTP GET 请求。有部分站点会屏蔽来自非 Web 浏览器的访问，因此构造 HTTP 请求时尽量接近于真实的浏览器请求，以减少被禁止的可能性。<br>通过浏览器的网络工具可以看到一个完整的 HTTP 请求报文，<br><img src="\img\jandan_request.png" alt="request"><br>
-      
-    </div>
-    
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/python/">python</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/爬虫/">爬虫</a></li></ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a  href="/2015/03/15/write-a-cawler/#more">more >></a>
-        </p>
-      
-      <div class="clearfix"></div>
-    </div>
-    
-  </div>
-  
-</article>
-
-
-
-
-
-
-
-  
-    <article id="post-consistent-hashing" class="article article-type-post" itemscope itemprop="blogPost">
-  
-    <div class="article-meta">
-      <a href="/2014/11/15/consistent-hashing/" class="article-date">
-  	<time datetime="2014-11-15T14:20:19.000Z" itemprop="datePublished">2014-11-15</time>
-</a>
-    </div>
-  
-  <div class="article-inner">
-    
-      <input type="hidden" class="isFancy" />
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2014/11/15/consistent-hashing/">一致性哈希</a>
-    </h1>
-  
-
-      </header>
-      
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="一致性的含义">一致性的含义</h2><p>在分布式的场景下，为了将数据分发到不同节点上，最简单的算法是通过对数据哈希取余的方式。假设有n个节点，公式为：  $hash(key) \bmod n$<br>这种方式有一个明显的弊端，当节点数变换（这在集群里经常发生），所有数据就得再次计算，重新分布，例如增加一个节点：  $hash(key) \bmod (n+1)$  很明显这个key将会跑到其他节点上去了。<br>对于数据量非常大的情形，一次迁移可能会耗时很久，给服务稳定性带来很大压力，这是不可接受的。而一致性哈希 (consistent hashing) 解决了这个问题，保证在节点数变化时，只有必要的数据发生迁移，大部分的数据的分布和原来一致。这也就是其名字里 <strong>consistent</strong> 一致性的含义。<br>
-      
-    </div>
-    
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式/">分布式</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/算法/">算法</a></li></ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a  href="/2014/11/15/consistent-hashing/#more">more >></a>
-        </p>
-      
-      <div class="clearfix"></div>
-    </div>
-    
-  </div>
-  
-</article>
-
-
-
-
-
-
-
-  
+    <nav id="page-nav">
+      <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">Next &raquo;</a>
+    </nav>
   
 </div>
       <footer id="footer">

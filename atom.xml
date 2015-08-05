@@ -5,7 +5,7 @@
   <subtitle><![CDATA[脑洞大开]]></subtitle>
   <link href="/atom.xml" rel="self"/>
   <link href="http://evthoriz.github.io//"/>
-  <updated>2015-07-31T08:21:02.000Z</updated>
+  <updated>2015-08-05T08:19:35.000Z</updated>
   <id>http://evthoriz.github.io//</id>
   
   <author>
@@ -14,6 +14,178 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title><![CDATA[Geohash 算法完整实现]]></title>
+    <link href="http://evthoriz.github.io/2015/08/05/geohash-implement/"/>
+    <id>http://evthoriz.github.io/2015/08/05/geohash-implement/</id>
+    <published>2015-08-04T16:00:00.000Z</published>
+    <updated>2015-08-05T08:19:35.000Z</updated>
+    <content type="html"><![CDATA[<p>果然欠下的债还是得还啊，今天将 GeoHash 算法完整的实现了一遍，包扩上次偷懒的 Base32 编码的实现，和计算周围8个 geohash 的实现，周围8个的计算方法可以参考我的另一篇 <a href="/2015/07/02/Geohash 算法的边界问题/">分析</a>。<br>写成了一个工具类，</p>
+<h3 id="提供下列接口">提供下列接口</h3><table>
+<thead>
+<tr>
+<th>Modifier and Type</th>
+<th>Method and Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>String</td>
+<td>toGeoHash(double lng, double lat)<br> 根据经纬度计算 geohash，默认长度为8</td>
+</tr>
+<tr>
+<td>String</td>
+<td>toGeoHash(double lng, double lat, int level)<br> 根据经纬度转换为指定长度的 geohash</td>
+</tr>
+<tr>
+<td>GPS</td>
+<td>toGPS(String geohash)<br> 将 geohash 转换成gps，GPS 类包含经纬度两个值</td>
+</tr>
+<tr>
+<td>List\<string\></string\></td>
+<td>getRound8(String geohash)<br>根据给定的geohash计算出周围8个 geohash</td>
+</tr>
+</tbody>
+</table>
+<p>性能方面在笔记本上随便测试了一下，getRound8 在 50w 上下，其他每个接口都在百万以上。</p>
+<p>代码位置：<a href="https://github.com/evthoriz/geohash-java" target="_blank" rel="external">Github</a></p>
+<a id="more"></a>
+<h3 id="实现中的几个注意点">实现中的几个注意点</h3><h4 id="二进制计算">二进制计算</h4><p>由于没有 bit 类型，二进制串使用了 int 数组表示。尽管 int 四子节，但相比单字节来说运算更方便。另外也没有使用 Java 提供的 <code>String toBinaryString(int i)</code> 和 <code>int parseInt(String s, int radix)</code> 这两个方法。操作 int 数组应该是最快的了。</p>
+<h4 id="合并">合并</h4><p>经度 [-180, 180] 纬度 [-90, 90]</p>
+<p>大于为1，设置低端边界为中间值。</p>
+<p>小于为0，设置高端边界为中间值。</p>
+<p>偶数位放经度 lng</p>
+<p>奇数位放纬度 lat</p>
+<p>从第0位开始，故先放经度。</p>
+<h4 id="Base32_编码">Base32 编码</h4><p>geohash 官方使用的 Base32 字母表并非 RFC 4648 标准内定义的任何一种。故需要自己实现。</p>
+<table>
+<thead>
+<tr>
+<th>Decimal</th>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+<th>15</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Base32</td>
+<td>0</td>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+<td>4</td>
+<td>5</td>
+<td>6</td>
+<td>7</td>
+<td>8</td>
+<td>9</td>
+<td>b</td>
+<td>c</td>
+<td>d</td>
+<td>e</td>
+<td>f</td>
+<td>g</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Decimal</th>
+<th>16</th>
+<th>17</th>
+<th>18</th>
+<th>19</th>
+<th>20</th>
+<th>21</th>
+<th>22</th>
+<th>23</th>
+<th>24</th>
+<th>25</th>
+<th>26</th>
+<th>27</th>
+<th>28</th>
+<th>29</th>
+<th>30</th>
+<th>31</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Base32</td>
+<td>h</td>
+<td>j</td>
+<td>k</td>
+<td>m</td>
+<td>n</td>
+<td>p</td>
+<td>q</td>
+<td>r</td>
+<td>s</td>
+<td>t</td>
+<td>u</td>
+<td>v</td>
+<td>w</td>
+<td>x</td>
+<td>y</td>
+<td>z</td>
+</tr>
+</tbody>
+</table>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>果然欠下的债还是得还啊，今天将 GeoHash 算法完整的实现了一遍，包扩上次偷懒的 Base32 编码的实现，和计算周围8个 geohash 的实现，周围8个的计算方法可以参考我的另一篇 <a href="/2015/07/02/Geohash 算法的边界问题/">分析</a>。<br>写成了一个工具类，</p>
+<h3 id="提供下列接口">提供下列接口</h3><table>
+<thead>
+<tr>
+<th>Modifier and Type</th>
+<th>Method and Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>String</td>
+<td>toGeoHash(double lng, double lat)<br> 根据经纬度计算 geohash，默认长度为8</td>
+</tr>
+<tr>
+<td>String</td>
+<td>toGeoHash(double lng, double lat, int level)<br> 根据经纬度转换为指定长度的 geohash</td>
+</tr>
+<tr>
+<td>GPS</td>
+<td>toGPS(String geohash)<br> 将 geohash 转换成gps，GPS 类包含经纬度两个值</td>
+</tr>
+<tr>
+<td>List\<String\></td>
+<td>getRound8(String geohash)<br>根据给定的geohash计算出周围8个 geohash</td>
+</tr>
+</tbody>
+</table>
+<p>性能方面在笔记本上随便测试了一下，getRound8 在 50w 上下，其他每个接口都在百万以上。</p>
+<p>代码位置：<a href="https://github.com/evthoriz/geohash-java">Github</a></p>]]>
+    
+    </summary>
+    
+      <category term="LBS" scheme="http://evthoriz.github.io/tags/LBS/"/>
+    
+      <category term="算法" scheme="http://evthoriz.github.io/tags/%E7%AE%97%E6%B3%95/"/>
+    
+  </entry>
   
   <entry>
     <title><![CDATA[GC root 和 Memory leak]]></title>

@@ -5,7 +5,7 @@
   <subtitle><![CDATA[脑洞大开]]></subtitle>
   <link href="/atom.xml" rel="self"/>
   <link href="http://evthoriz.github.io//"/>
-  <updated>2015-08-05T08:19:35.000Z</updated>
+  <updated>2015-09-13T11:51:10.000Z</updated>
   <id>http://evthoriz.github.io//</id>
   
   <author>
@@ -14,6 +14,89 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title><![CDATA[Pub/sub 模式中的 push 和 pull]]></title>
+    <link href="http://evthoriz.github.io/2015/09/13/Pubsub%20Pattern/"/>
+    <id>http://evthoriz.github.io/2015/09/13/Pubsub Pattern/</id>
+    <published>2015-09-12T16:00:00.000Z</published>
+    <updated>2015-09-13T11:51:10.000Z</updated>
+    <content type="html"><![CDATA[<h2 id="简介">简介</h2><p>发布／订阅模式 (Pub/sub pattern) 的定义和观察者模式 (Observer pattern) 无差。按照观察者模式的定义：通过在被观察物体上注册观测器，使得被观察物体发生特定事件时，能被所有观测器获知并作出反应。套用到发布订阅模式上，就是订阅者们订阅主题，主题上有新消息发布时，所有订阅者都能收到消息。</p>
+<p>相对观察者模式来说，发布／订阅模式 是一种更加实际、针对性更强的设计模式，通常在分布式消息服务的应用场景中出现。同一个主题 (topic) 允许有多个订阅者 (subscriber)，发布者 (publisher) 会向这个主题发布消息，这个消息会被该主题的所有订阅者收到。</p>
+<h2 id="Push_or_Pull">Push or Pull</h2><p>如果从观察者模式的角度来考虑，发布／订阅模式也应该使用 push 的方式通知订阅者，以达到事件发生（有该主题的消息到达）后实时响应的目的。在 Redis 中的发布／订阅模式就是遵循这一思路实现的。</p>
+<p><strong>Thread Model</strong></p>
+<p><img src="\img\pubsub_push.png" alt="pubsub-push"><br><a id="more"></a><br>在 push 模式中，topic（服务端） 维护一个 msg queue 用来缓存消息，一个 subscriber list 来保存所有注册的订阅者。分发线程尽快把消息从队列里取出来，并发送给订阅者。这里的优点是，消息队列维护简单，服务端只需要保存一份；实时性好，服务端不会阻塞，每次取出来都尽管写给连接着的客户端即可，无需在意订阅者的消费速度。<br>缺点是如果说订阅者的消费速度根本跟不上主题的生产速度，那么尽管服务端消息被传递出去了，客户端这边可能会产生堆积，而这意味着同一个消息会有多个拷贝在同一时间存在于整个系统中。</p>
+<p><img src="\img\pubsub_pull.png" alt="pubsub-pull"></p>
+<p>在 pull 模式中，服务端不主动 push 消息给客户端，而是客户端主动从服务端来拉取自己订阅的主题下的消息。这和普通的消息队列的使用场景类似。区别只不过一个消息需要被所有消费者所消费。这样做的优点是，订阅者可以根据自身消费速度决定从服务端获取消息的速度，也因此没有必要再在本地缓存消息副本。同时订阅者之间速度都互不搭界。随之而来的缺点是，服务端同一个主题下需要为每个订阅者维护一个消息队列，浪费内存。可以通过改成消息引用队列来优化，比如通过消息 id 等引用到真正的消息实体。但这么做仍然还有隐含的问题，考虑普通的消息队列，当队列中的消息数量增长过快，超过设定的内存阈值后，会选择将消息先存储到磁盘中。然后消耗掉内存里的队列后，再读取磁盘补充进内存。这在 topic 中可能出现的问题是，当其他的订阅者均以消费完内存中的所有消息，一个消费速度特别慢的订阅者会导致内存里其未消费的数据无法被清理，内存空间无法释放导致不能从磁盘中加载新数据，从而阻塞了所有其他订阅者。HornetQ 中就存在如是问题。</p>
+<h2 id="总结">总结</h2><p>发布／订阅模式是一种更加具体的观察者模式变种，完成分布式系统中发布者和订阅者的解耦。对于实时性强的一般倾向于 push 方式；对于 topic 消息生产速度快的倾向于pull 方法；具体采用何种方式仍然应该按照实际业务来分析。但是无论如何，消费者的消费速度决定了消息的真实的处理速度，无论消息最终被缓存在了服务端还是客户端，这都是不变的。</p>
+<h2 id="Ref-">Ref.</h2><p><a href="http://redisbook.readthedocs.org/en/latest/feature/pubsub.html" target="_blank" rel="external">Redis 设计与实现－订阅与发布</a></p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<h2 id="简介">简介</h2><p>发布／订阅模式 (Pub/sub pattern) 的定义和观察者模式 (Observer pattern) 无差。按照观察者模式的定义：通过在被观察物体上注册观测器，使得被观察物体发生特定事件时，能被所有观测器获知并作出反应。套用到发布订阅模式上，就是订阅者们订阅主题，主题上有新消息发布时，所有订阅者都能收到消息。</p>
+<p>相对观察者模式来说，发布／订阅模式 是一种更加实际、针对性更强的设计模式，通常在分布式消息服务的应用场景中出现。同一个主题 (topic) 允许有多个订阅者 (subscriber)，发布者 (publisher) 会向这个主题发布消息，这个消息会被该主题的所有订阅者收到。</p>
+<h2 id="Push_or_Pull">Push or Pull</h2><p>如果从观察者模式的角度来考虑，发布／订阅模式也应该使用 push 的方式通知订阅者，以达到事件发生（有该主题的消息到达）后实时响应的目的。在 Redis 中的发布／订阅模式就是遵循这一思路实现的。</p>
+<p><strong>Thread Model</strong></p>
+<p><img src="\img\pubsub_push.png" alt="pubsub-push"><br>]]>
+    
+    </summary>
+    
+      <category term="分布式" scheme="http://evthoriz.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F/"/>
+    
+      <category term="设计模式" scheme="http://evthoriz.github.io/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[covariant Array & invariant Generics]]></title>
+    <link href="http://evthoriz.github.io/2015/08/24/covariant%20Array%20&%20invariant%20Generics/"/>
+    <id>http://evthoriz.github.io/2015/08/24/covariant Array & invariant Generics/</id>
+    <published>2015-08-23T16:00:00.000Z</published>
+    <updated>2015-09-13T11:52:10.000Z</updated>
+    <content type="html"><![CDATA[<h2 id="covariant_还是_invariant">covariant 还是 invariant</h2><p>按照 Liskov 替换原则，如果 S 是 T 的子类型，那么对象 T 应当可以使用对象 S 来替换。这是 OOP 里多态的基石。</p>
+<p>多态大大强化了OOP语言的表达能力，可以在运行时才确定到底接受哪个子类实现。但是对于数组而言，是否应该也保留多态性呢？</p>
+<p>JAVA 的数组是 covariant 的，这么做可以让数组像其他对象一样充分利用面向对象的多态特性。针对Object类型数组编写的函数可以应用于任何类型的数组上，这使得数组类库的编写成为可能。比如 <code>Arrays.equals(Object[] a1, Object[] a2)</code>。</p>
+<p>而在JAVA 中泛型是 invariant 的，即使 S 是 T 的子类型，仍不能将 <code>List&lt;S&gt;</code> 看做 <code>List&lt;T&gt;</code>的子类型，为什么要这样设定呢？这么做可以将潜在的代码错误扼杀在编译期。比如</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Integer&gt; integerList = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">integerList.add(<span class="number">1</span>);</span><br><span class="line">List&lt;Number&gt; numberList = integerList; <span class="comment">// illegal</span></span><br><span class="line">numberList.add(<span class="number">2.0f</span>);</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<p>这样一段代码是无法通过编译的，因为编译器会认为 <code>List&lt;Integer&gt;</code> 和 <code>List&lt;Number&gt;</code> 类型不兼容，于是自然不会将<code>numberList.add(2.0f);</code>这种错误留到运行时。</p>
+<p>相反，上述代码改到数组则可以通过编译，</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Integer[] integers = <span class="keyword">new</span> Integer[<span class="number">2</span>];</span><br><span class="line">integers[<span class="number">0</span>] = <span class="number">1</span>;</span><br><span class="line">Number[] numbers = integers;</span><br><span class="line">numbers[<span class="number">1</span>] = <span class="number">2.0f</span>; <span class="comment">// runtime faliure</span></span><br></pre></td></tr></table></figure>
+<p>因为 <code>Integer[]</code> 是 <code>Number[]</code> 的子类型，这段代码可以通过编译，但是运行时会抛出 <code>ArrayStoreException</code>。</p>
+<p>那么为什么数组和泛型的设定不一样呢？设计之初，考虑到多态性，数组就是 covariant 的，但现在看来这种权衡更可能被当作一个设计上的缺陷。而泛型是在JDK 5.0 之后加入的，可能是为了避免数组这种 coviriant 之后往基类数组中添加其他的子类实现这种堂而皇之的错误用法，所以泛型就设计成了 invariant 的。</p>
+<p>但是既然认为 <code>List&lt;Object&gt;</code> 不是所有其他 <code>list&lt;&gt;</code> 的超类，那么是否意味着向上述数组多态的便利性就没办法实现了呢？<br>可以看 <code>java.util.Collections</code> 里的 <code>shuffle(List&lt;?&gt; list)</code> 方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">shuffle</span><span class="params">(List&lt;?&gt; list)</span> </span>&#123;</span><br><span class="line">    Random rnd = r;</span><br><span class="line">    <span class="keyword">if</span> (rnd == <span class="keyword">null</span>)</span><br><span class="line">        r = rnd = <span class="keyword">new</span> Random(); <span class="comment">// harmless race.</span></span><br><span class="line">    shuffle(list, rnd);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在泛型中引入了 <code>&lt;?&gt;</code> 通配符 (wildcard) 的概念，<code>List&lt;?&gt; list</code> 意味着  <strong>a list of unknow</strong>，允许匹配任意泛型类型的 List。<br><code>List&lt;?&gt; list</code> 这样的设定使得完全无法断定list里装载的对象类型，因此无论试图 set什么类型进去，编译器都不会答应的。但是可以从里面取值，毕竟即使不知道什么类型取出来总可以 upcast 成 所有类型的超类 Object。不过这对编译器和开发者都太不友好了，实际使用中通配符会搭配上下界使用，比如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">List&lt;? extends T&gt; list <span class="comment">// 表示 a list of the unknow type that is the subtype of T</span></span><br><span class="line">List&lt;? <span class="keyword">super</span> T&gt; list <span class="comment">// 表示 alist of the unknow type that is the supertype of T</span></span><br></pre></td></tr></table></figure>
+<p>通过限定通配符的上下界，编译器检查时可以获取足够的信息来判定，从 list 取出的值与放入的值类型是否正确。用 extends 来限定上界，那么unknow type 可以是任意 T 的子类，从 list 中取出的值都可以 upcast 成 超类 T。用 super 来限定下界，那么unknow type 可以是任意 T 的超类，类型 T 就一定可以放入 list 中。</p>
+<h2 id="Java_泛型的设计问题">Java 泛型的设计问题</h2><p>由于泛型是在 JAVA5 之后才加入的 feature，故它的设计不得不考虑对老版本代码的兼容，为了使原来非泛型编写的库，再引入泛型后可以无缝对接，JAVA 的设计者在泛型的实现上最终选择了使用类型擦除。这意味着，泛型在 Java 中并不是一等公民，而是一种仅在代码的编译期通过编译器做静态代码检查并在编译成字节码时在需要的地方插入类型转换的功能而已。类型擦除后编译出来的类结构部分的字节码和不使用泛型编译出来的字节码是一样的。这也很明显有这样一个问题，运行时无法得到设定的泛型类型参数信息，因为它在类结构中根本不存在。在使用泛型的 Java 库中，需要类型信息时通常需要传递 class 对象作为参数，也是因此不得已为之。</p>
+<p>这里强调类结构的字节码是因为在类型擦除后，编译出来类结构以外的字节码中还是会在某个地方保存有类型信息。</p>
+<h2 id="Java_泛型实例">Java 泛型实例</h2><p>下面是 5 个非常简单的泛型方法定义，擦除后都是对应的同一个方法定义，故无法互相重载。</p>
+<p>第一个普通用法，Integer 的 list，故元素取出来可以放入 Integer 类型的变量 n 中。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">bound</span><span class="params">(List&lt;Integer&gt; list)</span> </span>&#123;</span><br><span class="line">    list.add(<span class="number">1</span>);</span><br><span class="line">    Integer n = list.get(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> 第二个是带参数类型 T 的泛型方法定义，由于类型 T 不确定，故不能放入指定了具体类型的元素，但是取出来的元素必定是T类型的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function"><span class="keyword">void</span> <span class="title">bound</span><span class="params">(List&lt;T&gt; list)</span> </span>&#123;</span><br><span class="line"><span class="comment">//        list.add(1); // compile failure</span></span><br><span class="line">    T n = list.get(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> 第三个是带通配符类型的泛型方法定义，由于类型未知，故不能放入指定了具体类型的元素，取出来的数据也只有 Object 类型能 hold 住。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">bound</span><span class="params">(List&lt;?&gt; list)</span> </span>&#123;</span><br><span class="line"><span class="comment">//        list.add(1); // compile failure</span></span><br><span class="line">    Object o = list.get(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> 第四个是带上界的通配符类型的泛型方法定义，由于只知道类型是上界的子类型，故不能放入任何指定了具体类型的元素，但取出来的元素肯定可以自动 upcast 成上界类型。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">bound</span><span class="params">(List&lt;? extends Number&gt; list)</span> </span>&#123;</span><br><span class="line"><span class="comment">//        list.add(1); // compile failure</span></span><br><span class="line">    Number n = list.get(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> 第五个是带下界的通配符类型的范型方法定义，由于只知道类型是下界的超类型，故可以放入任何该下界子类型的元素，但是取出来的数据只有 Object 类型能 hold 住。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">bound</span><span class="params">(List&lt;? <span class="keyword">super</span> Number&gt; list)</span> </span>&#123;</span><br><span class="line">    list.add(<span class="number">1</span>);</span><br><span class="line">    Object n = list.get(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Ref-">Ref.</h2><p><a href="http://c2.com/cgi/wiki?JavaArraysBreakTypeSafety" target="_blank" rel="external">Java Arrays Break Type Safety</a></p>
+<p><a href="https://www.ibm.com/developerworks/library/j-jtp01255/" target="_blank" rel="external">Java theory and practice: Generics gotchas</a></p>
+<p><a href="https://docs.oracle.com/javase/tutorial/extra/generics/wildcards.html" target="_blank" rel="external">Wildcards</a></p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<h2 id="covariant_还是_invariant">covariant 还是 invariant</h2><p>按照 Liskov 替换原则，如果 S 是 T 的子类型，那么对象 T 应当可以使用对象 S 来替换。这是 OOP 里多态的基石。</p>
+<p>多态大大强化了OOP语言的表达能力，可以在运行时才确定到底接受哪个子类实现。但是对于数组而言，是否应该也保留多态性呢？</p>
+<p>JAVA 的数组是 covariant 的，这么做可以让数组像其他对象一样充分利用面向对象的多态特性。针对Object类型数组编写的函数可以应用于任何类型的数组上，这使得数组类库的编写成为可能。比如 <code>Arrays.equals(Object[] a1, Object[] a2)</code>。</p>
+<p>而在JAVA 中泛型是 invariant 的，即使 S 是 T 的子类型，仍不能将 <code>List&lt;S&gt;</code> 看做 <code>List&lt;T&gt;</code>的子类型，为什么要这样设定呢？这么做可以将潜在的代码错误扼杀在编译期。比如</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Integer&gt; integerList = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">integerList.add(<span class="number">1</span>);</span><br><span class="line">List&lt;Number&gt; numberList = integerList; <span class="comment">// illegal</span></span><br><span class="line">numberList.add(<span class="number">2.0f</span>);</span><br></pre></td></tr></table></figure>]]>
+    
+    </summary>
+    
+      <category term="JAVA基础" scheme="http://evthoriz.github.io/tags/JAVA%E5%9F%BA%E7%A1%80/"/>
+    
+  </entry>
   
   <entry>
     <title><![CDATA[Geohash 算法完整实现]]></title>
